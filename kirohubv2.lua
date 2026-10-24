@@ -46,7 +46,7 @@ end)
 
 ----------------------------------------------------------------
 -- Patch PlotClient / NumberUtils nil errors
--- NumberUtils.ToString → math.abs(nil)  |  UpdateClaim mul on nil
+-- NumberUtils.ToString ’ math.abs(nil)  |  UpdateClaim mul on nil
 ----------------------------------------------------------------
 pcall(function()
     local _abs = math.abs
@@ -259,14 +259,14 @@ task.spawn(function()
         SideActive  = Color3.fromRGB(44,  26,  36),
         Card        = Color3.fromRGB(22,  16,  26),
         CardHover   = Color3.fromRGB(32,  22,  36),
-        Line        = Color3.fromRGB(245, 115,  30),
+        Line        = Color3.fromRGB(235, 45,  55),
         Soft        = Color3.fromRGB(26,  18,  30),
         Text        = Color3.fromRGB(255, 245, 240),
         TextDim     = Color3.fromRGB(200, 170, 160),
         TextMute    = Color3.fromRGB(140, 110, 105),
-        Primary     = Color3.fromRGB(255, 120,   0),
+        Primary     = Color3.fromRGB(235, 45,  55),
         White       = Color3.fromRGB(255, 255, 255),
-        Green       = Color3.fromRGB(255, 120,   0),
+        Green       = Color3.fromRGB(235, 45,  55),
     }
 
     local F  = TweenInfo.new(0.12, Enum.EasingStyle.Quad)
@@ -274,13 +274,13 @@ task.spawn(function()
     local PG = TweenInfo.new(0.18, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
 
     local Theme = {
-        c1 = Color3.fromRGB(255, 120,   0), -- Glowing Pumpkin Orange (Halloween)
-        c2 = Color3.fromRGB(255, 160,  30), -- Radiant Amber Orange (Halloween)
+        c1 = Color3.fromRGB(235, 45,  55), -- Vibrant Red (Kiro Theme)
+        c2 = Color3.fromRGB(255, 60,  70), -- Radiant Red (Kiro Theme)
     }
 
-    -- Contrast knob color: primary==secondary → white; both white → black
+    -- Contrast knob color: primary==secondary ’ white; both white ’ black
     local function _KiroKnobOnColor()
-        local p = Color3.fromRGB(168, 85, 247)
+        local p = Color3.fromRGB(235, 45, 55)
         local s = Color3.fromRGB(255, 255, 255)
         pcall(function()
             if Theme and typeof(Theme.c1) == "Color3" then p = Theme.c1 end
@@ -361,9 +361,7 @@ task.spawn(function()
         end)
         pcall(function()
             if _G._FH_ReopenBtn then
-                _G._FH_ReopenBtn.BackgroundColor3 = col
-                local lum = 0.299 * col.R + 0.587 * col.G + 0.114 * col.B
-                _G._FH_ReopenBtn.TextColor3 = (lum > 0.55) and Color3.fromRGB(12, 6, 22) or Color3.fromRGB(255, 255, 255)
+                _G._FH_ReopenBtn.BackgroundColor3 = Color3.fromRGB(12, 10, 14)
             end
         end)
         if type(Repaint) == "function" then
@@ -554,6 +552,36 @@ task.spawn(function()
     end
     _G._KiroAttachSideImage = _KiroAttachSideImage
 
+    _G._KiroThemeBgEnabled = true
+
+    local function _KiroSetThemeBg(enabled)
+        _G._KiroThemeBgEnabled = enabled and true or false
+        pcall(function()
+            if Config and Config.set then Config.set("halloween_bg_enabled", _G._KiroThemeBgEnabled) end
+        end)
+        pcall(function()
+            local function scan(container)
+                if not container then return end
+                for _, d in ipairs(container:GetDescendants()) do
+                    if d.Name == "KiroHalloweenBg" or d.Name == "DarkOverlay" then
+                        d.Visible = _G._KiroThemeBgEnabled
+                    end
+                end
+            end
+            if Root then scan(Root) end
+            pcall(function() if type(gethui) == "function" then scan(gethui()) end end)
+            pcall(function() scan(game:GetService("CoreGui")) end)
+            pcall(function()
+                local lp = game:GetService("Players").LocalPlayer
+                if lp then scan(lp:FindFirstChildOfClass("PlayerGui") or lp:FindFirstChild("PlayerGui")) end
+            end)
+        end)
+        if _G._FH_UpdateThemeBtn then
+            pcall(_G._FH_UpdateThemeBtn, _G._KiroThemeBgEnabled)
+        end
+    end
+    _G._KiroSetThemeBg = _KiroSetThemeBg
+
     local function _KiroStyleLikeHub(panel, titleBar)
         if not panel or not panel.Parent then return end
         local halloweenOrange = Color3.fromRGB(255, 120, 0)
@@ -590,6 +618,7 @@ task.spawn(function()
                 bgImg.ScaleType = Enum.ScaleType.Crop
                 bgImg.Active = false
                 bgImg.ZIndex = 0
+                bgImg.Visible = (_G._KiroThemeBgEnabled ~= false)
                 bgImg.Parent = panel
                 local c = Instance.new("UICorner")
                 c.CornerRadius = UDim.new(0, 12)
@@ -598,6 +627,7 @@ task.spawn(function()
                 bgImg.ZIndex = 0
                 bgImg.ScaleType = Enum.ScaleType.Crop
                 bgImg.BackgroundTransparency = 0
+                bgImg.Visible = (_G._KiroThemeBgEnabled ~= false)
             end
             task.spawn(function()
                 pcall(function()
@@ -622,6 +652,7 @@ task.spawn(function()
                 darkOverlay.BorderSizePixel = 0
                 darkOverlay.Active = false
                 darkOverlay.ZIndex = 0
+                darkOverlay.Visible = (_G._KiroThemeBgEnabled ~= false)
                 darkOverlay.Parent = panel
                 local c = Instance.new("UICorner")
                 c.CornerRadius = UDim.new(0, 12)
@@ -629,6 +660,7 @@ task.spawn(function()
             else
                 darkOverlay.ZIndex = 0
                 darkOverlay.BackgroundTransparency = 0.35
+                darkOverlay.Visible = (_G._KiroThemeBgEnabled ~= false)
             end
         end)
 
@@ -710,7 +742,7 @@ task.spawn(function()
                     accent.Parent = titleBar
                 end
                 accent.ZIndex = (titleBar.ZIndex or 1) + 2
-                accent.BackgroundColor3 = neonOrange
+                accent.BackgroundColor3 = (Theme and Theme.c1) or Color3.fromRGB(235, 45, 55)
             end)
             pcall(function()
                 for _, d in ipairs(titleBar:GetChildren()) do
@@ -1102,7 +1134,7 @@ task.spawn(function()
             if fps == _lastBannerFps and ping == _lastBannerPing then return end
             _lastBannerFps, _lastBannerPing = fps, ping
 
-            local primary = Theme.c1 or T.Primary or Color3.fromRGB(168, 85, 247)
+            local primary = Theme.c1 or T.Primary or Color3.fromRGB(235, 45, 55)
             local textCol = T.Text or Color3.fromRGB(245, 240, 255)
             local amber = Color3.fromRGB(255, 200, 80)
             local red = Color3.fromRGB(255, 90, 90)
@@ -1301,6 +1333,7 @@ task.spawn(function()
     RootBgImage.ScaleType = Enum.ScaleType.Crop
     RootBgImage.Active = false
     RootBgImage.ZIndex = 2
+    RootBgImage.Visible = (_G._KiroThemeBgEnabled ~= false)
     RootBgImage.Parent = Root
     Corner(RootBgImage, 14)
 
@@ -1323,6 +1356,7 @@ task.spawn(function()
     DarkOverlay.BorderSizePixel = 0
     DarkOverlay.Active = false
     DarkOverlay.ZIndex = 2
+    DarkOverlay.Visible = (_G._KiroThemeBgEnabled ~= false)
     DarkOverlay.Parent = Root
     Corner(DarkOverlay, 14)
 
@@ -1365,9 +1399,9 @@ task.spawn(function()
 
     local MinBtn = Instance.new("TextButton")
     MinBtn.Name = "MinBtn"
-    MinBtn.Size = UDim2.fromOffset(24, 24)
-    MinBtn.Position = UDim2.new(1, -38, 0, 7)
-    MinBtn.BackgroundColor3 = Color3.fromRGB(20, 18, 16)
+    MinBtn.Size = UDim2.new(0, 24, 0, 22)
+    MinBtn.Position = UDim2.new(1, -34, 0, 8)
+    MinBtn.BackgroundColor3 = Color3.fromRGB(15, 14, 18)
     MinBtn.Text = "-"
     MinBtn.Font = Enum.Font.GothamBold
     MinBtn.TextSize = 16
@@ -1376,8 +1410,8 @@ task.spawn(function()
     MinBtn.Active = true
     MinBtn.ZIndex = 60
     MinBtn.Parent = Side
-    Corner(MinBtn, 12)
-    Stroke(MinBtn, Color3.fromRGB(245, 115, 30), 1.2, 0)
+    Corner(MinBtn, 6)
+    Stroke(MinBtn, Color3.fromRGB(180, 140, 60), 1.2, 0)
 
     MinBtn.Activated:Connect(function()
         if type(setVisible) == "function" then
@@ -1387,9 +1421,12 @@ task.spawn(function()
         else
             Root.Visible = false
         end
+        if type(_G._KiroUpdateReopenState) == "function" then
+            pcall(_G._KiroUpdateReopenState, false)
+        end
     end)
-    MinBtn.MouseEnter:Connect(function() Tween(MinBtn, F, {BackgroundColor3 = Color3.fromRGB(35, 24, 18)}) end)
-    MinBtn.MouseLeave:Connect(function() Tween(MinBtn, F, {BackgroundColor3 = Color3.fromRGB(20, 18, 16)}) end)
+    MinBtn.MouseEnter:Connect(function() Tween(MinBtn, F, {BackgroundColor3 = Color3.fromRGB(28, 22, 24)}) end)
+    MinBtn.MouseLeave:Connect(function() Tween(MinBtn, F, {BackgroundColor3 = Color3.fromRGB(15, 14, 18)}) end)
 
     local guiLocked = false
     _G._FH_GuiLocked = false
@@ -1409,33 +1446,98 @@ task.spawn(function()
         end)
     end
 
+    -- Lock button (LOCK / LOCKED with styled border)
     local LockBtn = Instance.new("TextButton")
     LockBtn.Name = "LockBtn"
-    LockBtn.Size = UDim2.fromOffset(24, 24)
-    LockBtn.Position = UDim2.new(1, -68, 0, 7)
-    LockBtn.BackgroundColor3 = Color3.fromRGB(20, 18, 16)
-    LockBtn.Text = "🔓"
+    LockBtn.Size = UDim2.new(0, 60, 0, 22)
+    LockBtn.Position = UDim2.new(1, -100, 0, 8)
+    LockBtn.BackgroundColor3 = Color3.fromRGB(15, 14, 18)
+    LockBtn.Text = "LOCK"
     LockBtn.Font = Enum.Font.GothamBold
-    LockBtn.TextSize = 12
-    LockBtn.TextColor3 = Color3.fromRGB(245, 115, 30)
+    LockBtn.TextSize = 11
+    LockBtn.TextColor3 = Color3.fromRGB(155, 185, 210)
     LockBtn.AutoButtonColor = false
     LockBtn.Active = true
     LockBtn.ZIndex = 60
     LockBtn.Parent = Side
-    Corner(LockBtn, 12)
-    Stroke(LockBtn, Color3.fromRGB(245, 115, 30), 1.2, 0)
+    Corner(LockBtn, 6)
+    local lockStroke = Stroke(LockBtn, Color3.fromRGB(180, 140, 60), 1.2, 0)
     _G._FH_LockBtn = LockBtn
+
+    local function updateLockVisual(locked)
+        if locked then
+            LockBtn.Text = "LOCKED"
+            LockBtn.TextColor3 = Color3.fromRGB(250, 230, 130)
+            if lockStroke then lockStroke.Color = Color3.fromRGB(210, 165, 70) end
+        else
+            LockBtn.Text = "LOCK"
+            LockBtn.TextColor3 = Color3.fromRGB(155, 185, 210)
+            if lockStroke then lockStroke.Color = Color3.fromRGB(180, 140, 60) end
+        end
+    end
+    _G._FH_UpdateLockUI = updateLockVisual
 
     LockBtn.Activated:Connect(function()
         guiLocked = not guiLocked
         _G._FH_GuiLocked = guiLocked
-        LockBtn.Text = guiLocked and "🔒" or "🔓"
-        LockBtn.TextColor3 = guiLocked and Color3.fromRGB(255, 180, 50) or Color3.fromRGB(245, 115, 30)
+        updateLockVisual(guiLocked)
         if guiLocked and _G._FH_ClearAllDrags then _G._FH_ClearAllDrags() end
         if _G._FH_SaveLock then _G._FH_SaveLock(guiLocked) end
     end)
-    LockBtn.MouseEnter:Connect(function() Tween(LockBtn, F, {BackgroundColor3 = Color3.fromRGB(35, 24, 18)}) end)
-    LockBtn.MouseLeave:Connect(function() Tween(LockBtn, F, {BackgroundColor3 = Color3.fromRGB(20, 18, 16)}) end)
+    LockBtn.MouseEnter:Connect(function() Tween(LockBtn, F, {BackgroundColor3 = Color3.fromRGB(28, 22, 24)}) end)
+    LockBtn.MouseLeave:Connect(function() Tween(LockBtn, F, {BackgroundColor3 = Color3.fromRGB(15, 14, 18)}) end)
+
+    -- Theme toggle button (TH: ON / TH: OFF) directly to the left of LOCK button
+    local themeBgOn = true
+    pcall(function()
+        if Config and Config.get then
+            themeBgOn = Config.get("halloween_bg_enabled", true)
+        end
+    end)
+    if _G._KiroThemeBgEnabled ~= nil then
+        themeBgOn = (_G._KiroThemeBgEnabled ~= false)
+    else
+        _G._KiroThemeBgEnabled = themeBgOn
+    end
+
+    local ThemeBtn = Instance.new("TextButton")
+    ThemeBtn.Name = "ThemeBtn"
+    ThemeBtn.Size = UDim2.new(0, 66, 0, 22)
+    ThemeBtn.Position = UDim2.new(1, -172, 0, 8)
+    ThemeBtn.BackgroundColor3 = Color3.fromRGB(15, 14, 18)
+    ThemeBtn.Text = themeBgOn and "TH: ON" or "TH: OFF"
+    ThemeBtn.Font = Enum.Font.GothamBold
+    ThemeBtn.TextSize = 11
+    ThemeBtn.TextColor3 = themeBgOn and Color3.fromRGB(250, 230, 130) or Color3.fromRGB(155, 185, 210)
+    ThemeBtn.AutoButtonColor = false
+    ThemeBtn.Active = true
+    ThemeBtn.ZIndex = 60
+    ThemeBtn.Parent = Side
+    Corner(ThemeBtn, 6)
+    local themeStroke = Stroke(ThemeBtn, themeBgOn and Color3.fromRGB(210, 165, 70) or Color3.fromRGB(180, 140, 60), 1.2, 0)
+    _G._FH_ThemeBtn = ThemeBtn
+
+    local function updateThemeVisual(on)
+        themeBgOn = on and true or false
+        ThemeBtn.Text = themeBgOn and "TH: ON" or "TH: OFF"
+        ThemeBtn.TextColor3 = themeBgOn and Color3.fromRGB(250, 230, 130) or Color3.fromRGB(155, 185, 210)
+        if themeStroke then
+            themeStroke.Color = themeBgOn and Color3.fromRGB(210, 165, 70) or Color3.fromRGB(180, 140, 60)
+        end
+    end
+    _G._FH_UpdateThemeBtn = updateThemeVisual
+
+    ThemeBtn.Activated:Connect(function()
+        themeBgOn = not themeBgOn
+        if _G._KiroSetThemeBg then
+            _G._KiroSetThemeBg(themeBgOn)
+        else
+            _G._KiroThemeBgEnabled = themeBgOn
+            updateThemeVisual(themeBgOn)
+        end
+    end)
+    ThemeBtn.MouseEnter:Connect(function() Tween(ThemeBtn, F, {BackgroundColor3 = Color3.fromRGB(28, 22, 24)}) end)
+    ThemeBtn.MouseLeave:Connect(function() Tween(ThemeBtn, F, {BackgroundColor3 = Color3.fromRGB(15, 14, 18)}) end)
 
     local HdrDivider = Instance.new("Frame")
     HdrDivider.Name = "HdrDivider"
@@ -2259,7 +2361,7 @@ task.spawn(function()
             if state == true then
                 local ctrl = reg[name]
                 if ctrl and ctrl.set then
-                    pcall(function() ctrl.set(true, false) end) -- not silent → fire callback
+                    pcall(function() ctrl.set(true, false) end) -- not silent ’ fire callback
                     applied = applied + 1
                 else
                     local cb = cbs[name]
@@ -2330,6 +2432,9 @@ task.spawn(function()
             if sc then
                 sc.Scale = show and (_UI.desiredScale or 1) or 0
             end
+            if type(_G._KiroUpdateReopenState) == "function" then
+                pcall(_G._KiroUpdateReopenState, show)
+            end
         end
     end
     _G._FH_ToggleHub = _toggleHubVisible
@@ -2374,80 +2479,197 @@ task.spawn(function()
         end)
     end)
 
-    local _pillW = isMobile and (isPhone and 96 or 100) or 88
-    local _pillH = isMobile and (isPhone and 40 or 38) or 34
+    local _pillW = isMobile and (isPhone and 112 or 108) or 102
+    local _pillH = isMobile and (isPhone and 36 or 34) or 32
 
     local ReopenBtn = Instance.new("TextButton")
     ReopenBtn.Name                   = "KiroReopenBtn"
     ReopenBtn.Size                   = UDim2.new(0, _pillW, 0, _pillH)
-    ReopenBtn.Position               = UDim2.new(0, 8, 0.5, -math.floor(_pillH / 2))
-    ReopenBtn.BackgroundColor3       = Color3.fromRGB(18, 12, 26)
+    ReopenBtn.Position               = UDim2.new(0, 10, 0.5, -math.floor(_pillH / 2))
+    ReopenBtn.BackgroundColor3       = Color3.fromRGB(12, 10, 14)
     ReopenBtn.BorderSizePixel        = 0
-    ReopenBtn.Text                   = "KIRO"
-    ReopenBtn.Font                   = Enum.Font.GothamBlack
-    ReopenBtn.TextSize               = isMobile and 13 or 12
-    ReopenBtn.TextColor3             = Color3.fromRGB(255, 120, 0)
+    ReopenBtn.Text                   = ""
     ReopenBtn.AutoButtonColor        = false
     ReopenBtn.Active                 = true
-    ReopenBtn.Selectable             = true
+    ReopenBtn.Selectable             = false
     ReopenBtn.Visible                = true
-    ReopenBtn.ZIndex                 = 10
+    ReopenBtn.ZIndex                 = 100
     ReopenBtn.ClipsDescendants       = false
     ReopenBtn.Parent                 = ReopenGui
-    GradStroke(ReopenBtn, 2.0, 0, 90)
-    local hitPad = Instance.new("TextButton")
-    hitPad.Name = "HitPad"
-    hitPad.Size = UDim2.new(1, isMobile and 24 or 8, 1, isMobile and 20 or 8)
-    hitPad.Position = UDim2.new(0.5, 0, 0.5, 0)
-    hitPad.AnchorPoint = Vector2.new(0.5, 0.5)
-    hitPad.BackgroundTransparency = 1
-    hitPad.Text = ""
-    hitPad.AutoButtonColor = false
-    hitPad.Active = true
-    hitPad.ZIndex = 11
-    hitPad.Parent = ReopenBtn
-    _newScale(ReopenBtn)
+
     do
         local c = Instance.new("UICorner")
-        c.CornerRadius = UDim.new(1, 0) -- full pill
+        c.CornerRadius = UDim.new(1, 0)
         c.Parent = ReopenBtn
+
+        local s = Instance.new("UIStroke")
+        s.Name = "PillStroke"
+        s.Thickness = 1.2
+        s.Color = Color3.fromRGB(180, 95, 20)
+        s.Transparency = 0.2
+        s.Parent = ReopenBtn
     end
-    Stroke(ReopenBtn, Color3.fromRGB(0, 0, 0), 1.5, 0.2)
-    ReopenBtn.MouseEnter:Connect(function() Tween(ReopenBtn, F, {BackgroundColor3 = Color3.fromRGB(192, 132, 252)}) end)
-    ReopenBtn.MouseLeave:Connect(function() Tween(ReopenBtn, F, {BackgroundColor3 = Color3.fromRGB(168, 85, 247)}) end)
 
+    -- Pumpkin Icon (matching photo 2)
+    local pumpkinIcon = Instance.new("ImageLabel")
+    pumpkinIcon.Name = "PumpkinIcon"
+    pumpkinIcon.Size = UDim2.fromOffset(20, 20)
+    pumpkinIcon.Position = UDim2.new(0, 7, 0.5, -10)
+    pumpkinIcon.BackgroundTransparency = 1
+    pumpkinIcon.ScaleType = Enum.ScaleType.Fit
+    pumpkinIcon.Active = false
+    pumpkinIcon.ZIndex = 101
+    pumpkinIcon.Parent = ReopenBtn
     do
-        local lastToggleAt = 0
-        local function onClick()
-            local now = tick()
-            if now - lastToggleAt < 0.3 then return end
-            lastToggleAt = now
-            _toggleHubVisible()
-        end
+        local c = Instance.new("UICorner")
+        c.CornerRadius = UDim.new(1, 0)
+        c.Parent = pumpkinIcon
+    end
 
-        local function wireBtn(btn)
-            btn.Activated:Connect(onClick)
-        end
-        wireBtn(ReopenBtn)
-        wireBtn(hitPad)
+    task.spawn(function()
+        pcall(function()
+            local asset = _KiroEnsureHalloweenBgAsset and _KiroEnsureHalloweenBgAsset()
+            if asset and asset ~= "" and pumpkinIcon and pumpkinIcon.Parent then
+                pumpkinIcon.Image = asset
+            else
+                pumpkinIcon.Image = "rbxassetid://95529031547606"
+            end
+        end)
+    end)
+
+    -- "Kiro" Text (matching photo 2 font and position)
+    local kiroLbl = Instance.new("TextLabel")
+    kiroLbl.Name = "KiroLabel"
+    kiroLbl.Size = UDim2.new(0, 44, 1, 0)
+    kiroLbl.Position = UDim2.new(0, 31, 0, 0)
+    kiroLbl.BackgroundTransparency = 1
+    kiroLbl.Text = "Kiro"
+    kiroLbl.Font = Enum.Font.GothamBold
+    kiroLbl.TextSize = isMobile and 14 or 13
+    kiroLbl.TextColor3 = Color3.fromRGB(255, 255, 255)
+    kiroLbl.TextXAlignment = Enum.TextXAlignment.Left
+    kiroLbl.TextYAlignment = Enum.TextYAlignment.Center
+    kiroLbl.Active = false
+    kiroLbl.ZIndex = 101
+    kiroLbl.Parent = ReopenBtn
+
+    -- Status LED Circle Dot: Green when open / Red when closed (matching photo 2)
+    local statusDot = Instance.new("Frame")
+    statusDot.Name = "StatusDot"
+    statusDot.Size = UDim2.fromOffset(8, 8)
+    statusDot.Position = UDim2.new(1, -16, 0.5, -4)
+    statusDot.BackgroundColor3 = Color3.fromRGB(235, 45, 55)
+    statusDot.BorderSizePixel = 0
+    statusDot.Active = false
+    statusDot.ZIndex = 101
+    statusDot.Parent = ReopenBtn
+    do
+        local c = Instance.new("UICorner")
+        c.CornerRadius = UDim.new(1, 0)
+        c.Parent = statusDot
+        local s = Instance.new("UIStroke")
+        s.Thickness = 1
+        s.Color = Color3.fromRGB(235, 45, 55)
+        s.Transparency = 0.35
+        s.Parent = statusDot
+    end
+
+    _G._KiroReopenDot = statusDot
+
+    local function updateDotState(isOpen)
+        if not statusDot or not statusDot.Parent then return end
+        local col = isOpen and Color3.fromRGB(50, 225, 90) or Color3.fromRGB(235, 45, 55)
+        statusDot.BackgroundColor3 = col
+        local s = statusDot:FindFirstChildOfClass("UIStroke")
+        if s then s.Color = col end
+    end
+    _G._KiroUpdateReopenState = updateDotState
+
+    _newScale(ReopenBtn)
+
+    -- Hover effect
+    ReopenBtn.MouseEnter:Connect(function()
+        Tween(ReopenBtn, F, {BackgroundColor3 = Color3.fromRGB(24, 18, 28)})
+    end)
+    ReopenBtn.MouseLeave:Connect(function()
+        Tween(ReopenBtn, F, {BackgroundColor3 = Color3.fromRGB(12, 10, 14)})
+    end)
+
+    -- Dedicated ultra-smooth drag & click system for PC and Mobile
+    do
+        local dragging = false
+        local dragStart = Vector2.zero
+        local startPos = Vector2.zero
+        local hasMoved = false
+        local currentInput = nil
+        local lastClickTime = 0
 
         pcall(function()
-            if UserInputService.TouchTap then
-                UserInputService.TouchTap:Connect(function(positions, gp)
-                    if gp then return end
-                    if not positions or #positions < 1 then return end
-                    local pos = positions[1]
-                    local abs = ReopenBtn.AbsolutePosition
-                    local siz = ReopenBtn.AbsoluteSize
-                    local pad = isMobile and 16 or 4
-                    if pos.X >= abs.X - pad and pos.X <= abs.X + siz.X + pad
-                        and pos.Y >= abs.Y - pad and pos.Y <= abs.Y + siz.Y + pad then
-                        onClick()
+            local saved = Config and Config.get("reopen_pos", nil)
+            if type(saved) == "table" and #saved >= 4 then
+                ReopenBtn.Position = UDim2.new(saved[1], saved[2], saved[3], saved[4])
+            elseif loadGuiPosition then
+                loadGuiPosition("KiroHubReopen", ReopenBtn)
+            end
+        end)
+
+        ReopenBtn.InputBegan:Connect(function(inp)
+            if inp.UserInputType == Enum.UserInputType.MouseButton1 or inp.UserInputType == Enum.UserInputType.Touch then
+                dragging = true
+                hasMoved = false
+                currentInput = inp
+                dragStart = Vector2.new(inp.Position.X, inp.Position.Y)
+                startPos = Vector2.new(ReopenBtn.AbsolutePosition.X, ReopenBtn.AbsolutePosition.Y)
+            end
+        end)
+
+        UserInputService.InputChanged:Connect(function(inp)
+            if dragging and (inp == currentInput or inp.UserInputType == Enum.UserInputType.MouseMovement or inp.UserInputType == Enum.UserInputType.Touch) then
+                local cur = Vector2.new(inp.Position.X, inp.Position.Y)
+                local delta = cur - dragStart
+                if not hasMoved and delta.Magnitude > 4 then
+                    hasMoved = true
+                end
+                if hasMoved then
+                    local cam = workspace.CurrentCamera
+                    local vp = cam and cam.ViewportSize or Vector2.new(1920, 1080)
+                    local sz = ReopenBtn.AbsoluteSize
+                    local targetX = math.clamp(startPos.X + delta.X, 4, math.max(4, vp.X - sz.X - 4))
+                    local targetY = math.clamp(startPos.Y + delta.Y, 4, math.max(4, vp.Y - sz.Y - 4))
+                    ReopenBtn.Position = UDim2.fromOffset(targetX, targetY)
+                end
+            end
+        end)
+
+        UserInputService.InputEnded:Connect(function(inp)
+            if dragging and (inp == currentInput or inp.UserInputType == Enum.UserInputType.MouseButton1 or inp.UserInputType == Enum.UserInputType.Touch) then
+                dragging = false
+                currentInput = nil
+                if hasMoved then
+                    pcall(function()
+                        if saveGuiPosition then saveGuiPosition("KiroHubReopen", ReopenBtn) end
+                        if Config then
+                            local p = ReopenBtn.Position
+                            Config.set("reopen_pos", {p.X.Scale, p.X.Offset, p.Y.Scale, p.Y.Offset})
+                        end
+                    end)
+                else
+                    local now = tick()
+                    if now - lastClickTime >= 0.25 then
+                        lastClickTime = now
+                        _toggleHubVisible()
                     end
-                end)
+                end
             end
         end)
     end
+
+    task.defer(function()
+        local initOpen = (typeof(visible) == "boolean" and visible)
+            or (Root and Root.Visible and true)
+            or false
+        updateDotState(initOpen)
+    end)
 
     _G._FH_ReopenBtn = ReopenBtn
     _G._FH_ReopenGui = ReopenGui
@@ -2841,11 +3063,13 @@ task.spawn(function()
         if Config.get("gui_locked", false) == true then
             guiLocked = true
             _G._FH_GuiLocked = true
-            local lb = _G._FH_LockBtn
-            if lb then
-                lb.Text = "🔒"
-                lb.TextColor3 = Color3.fromRGB(255, 180, 50)
+            if _G._FH_UpdateLockUI then
+                _G._FH_UpdateLockUI(true)
             end
+        end
+        local savedTheme = Config.get("halloween_bg_enabled", true)
+        if savedTheme ~= nil and _G._KiroSetThemeBg then
+            _G._KiroSetThemeBg(savedTheme)
         end
     end
 
@@ -2857,8 +3081,8 @@ task.spawn(function()
             end
             return default
         end
-        Theme.c1 = Color3.fromRGB(195, 45, 255)
-        Theme.c2 = Color3.fromRGB(255, 120, 0)
+        Theme.c1 = Color3.fromRGB(235, 45, 55)
+        Theme.c2 = Color3.fromRGB(255, 60, 70)
         T.Primary = Theme.c1
         T.Green = Theme.c1
         if Dot1 then Dot1.BackgroundColor3 = Theme.c1 end
@@ -3102,7 +3326,7 @@ task.spawn(function()
                     _kbSet(baseName, name)
                     if _G._FH_EndBind then _G._FH_EndBind(name) end
                     pcall(function()
-                        if showToast then showToast(baseName .. " → " .. name, true) end
+                        if showToast then showToast(baseName .. " ’ " .. name, true) end
                     end)
                 end
                 refresh()
@@ -3212,10 +3436,10 @@ task.spawn(function()
         btn.Activated:Connect(doToggle)
         attachKeybind(btn, nameLbl, name, doToggle)
 
-        local saved = getToggleSaved(name, Config.get(cfgKey, false))
+        local saved = (name ~= "Instant Reset") and getToggleSaved(name, Config.get(cfgKey, false)) or false
         if saved then task.defer(function() setState(true, false) end) end
 
-        local reg = { card = card, setState = setState, getState = function() return on end, applyVisual = applyVisual }
+        local reg = { card = card, set = setState, setState = setState, getState = function() return on end, applyVisual = applyVisual }
         _ToggleReg[name] = reg
         return reg
     end
@@ -3817,7 +4041,7 @@ task.spawn(function()
         _G.AutoSteal = Steal
 
         -- ============================================================
-        -- MAUVE GUI ?" barre + nom brainrot au-dessus
+        -- RED AUTO STEAL GUI - barre + nom brainrot au-dessus
         -- ============================================================
         do
             pcall(function()
@@ -3881,7 +4105,7 @@ task.spawn(function()
             spFrame.Size = UDim2.new(0, 280, 0, 22)
             spFrame.Position = UDim2.new(0.5, 0, 1, 0)
             spFrame.AnchorPoint = Vector2.new(0.5, 1)
-            spFrame.BackgroundColor3 = Color3.fromRGB(60, 25, 80)
+            spFrame.BackgroundColor3 = Color3.fromRGB(60, 15, 20)
             spFrame.BackgroundTransparency = 0
             spFrame.BorderSizePixel = 0
             spFrame.Active = true
@@ -3890,19 +4114,19 @@ task.spawn(function()
             spFrame.ClipsDescendants = true
             Instance.new("UICorner", spFrame).CornerRadius = UDim.new(1, 0)
 
-            -- Fill mauve solide (pas de shine)
+            -- Fill rouge solide (pas de shine)
             spFill = Instance.new("Frame", spFrame)
             spFill.Name = "ProgressFill"
             spFill.Size = UDim2.new(0, 0, 1, 0)
             spFill.Position = UDim2.new(0, 0, 0, 0)
-            spFill.BackgroundColor3 = Color3.fromRGB(180, 70, 230)
+            spFill.BackgroundColor3 = Color3.fromRGB(235, 45, 55)
             spFill.BackgroundTransparency = 0
             spFill.BorderSizePixel = 0
             spFill.ZIndex = 301
             spFill.ClipsDescendants = true
             Instance.new("UICorner", spFill).CornerRadius = UDim.new(1, 0)
 
-            -- Pourcentage centrǸ
+            -- Pourcentage centrø
             spPct = Instance.new("TextLabel", spFrame)
             spPct.Name = "PercentLabel"
             spPct.Size = UDim2.new(1, 0, 1, 0)
@@ -4705,9 +4929,7 @@ end)()
         local hlRefreshConn = nil
 
         local function themePrimary()
-            if Theme and typeof(Theme.c1) == "Color3" then return Theme.c1 end
-            if T and typeof(T.Primary) == "Color3" then return T.Primary end
-            return Color3.fromRGB(168, 85, 247)
+            return Color3.fromRGB(235, 45, 55)
         end
 
         local function destroyGui()
@@ -5688,7 +5910,7 @@ end)()
 
             local emptyMsg
             if #list == 0 then
-                emptyMsg = "Aucun Brainrot trouvable…"
+                emptyMsg = "Aucun Brainrot trouvable&"
             elseif visibleCount == 0 and tostring(searchQuery or ""):gsub("%s+", "") ~= "" then
                 emptyMsg = "Aucun résultat pour « " .. tostring(searchQuery) .. " »"
             end
@@ -5822,7 +6044,7 @@ end)()
             Instance.new("UICorner", titleBar).CornerRadius = UDim.new(0, 12)
 
             local title = Instance.new("TextLabel")
-            title.Size = UDim2.new(1, -40, 1, 0)
+            title.Size = UDim2.new(1, -56, 1, 0)
             title.Position = UDim2.new(0, 12, 0, 0)
             title.BackgroundTransparency = 1
             title.Text = "Steal Target"
@@ -5837,12 +6059,37 @@ end)()
                 if style then style(frame, titleBar) end
             end)
 
+            local closeBtn = Instance.new("TextButton")
+            closeBtn.Name = "CloseBtn"
+            closeBtn.Size = UDim2.new(0, 24, 0, 24)
+            closeBtn.Position = UDim2.new(1, -28, 0.5, -12)
+            closeBtn.BackgroundColor3 = colors.closeBg
+            closeBtn.Text = "×"
+            closeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+            closeBtn.Font = Enum.Font.GothamBold
+            closeBtn.TextSize = 16
+            closeBtn.AutoButtonColor = false
+            closeBtn.ZIndex = 25
+            closeBtn.Active = true
+            closeBtn.Parent = titleBar
+            Instance.new("UICorner", closeBtn).CornerRadius = UDim.new(1, 0)
+            closeBtn.Activated:Connect(function()
+                if _G.StealTarget and _G.StealTarget.set then
+                    _G.StealTarget.set(false)
+                end
+                pcall(function()
+                    if _G._KiroSetToggleUI then
+                        _G._KiroSetToggleUI("Steal Target", false, true)
+                    end
+                end)
+            end)
+
             local minBtn = Instance.new("TextButton")
             minBtn.Name = "MinBtn"
             minBtn.Size = UDim2.new(0, 24, 0, 24)
-            minBtn.Position = UDim2.new(1, -30, 0.5, -12)
+            minBtn.Position = UDim2.new(1, -56, 0.5, -12)
             minBtn.BackgroundColor3 = colors.closeBg
-            minBtn.Text = "–"
+            minBtn.Text = "-"
             minBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
             minBtn.Font = Enum.Font.GothamBold
             minBtn.TextSize = 16
@@ -5869,7 +6116,7 @@ end)()
                     minBtn.Text = "+"
                 else
                     frame.Size = _stExpandedSize or UDim2.new(0, 220, 0, 310)
-                    minBtn.Text = "–"
+                    minBtn.Text = "-"
                     pcall(function()
                         if scaleStealTargetCases then scaleStealTargetCases() end
                     end)
@@ -5938,7 +6185,7 @@ end)()
             searchIcon.Size = UDim2.new(0, 22, 1, 0)
             searchIcon.Position = UDim2.new(0, 4, 0, 0)
             searchIcon.BackgroundTransparency = 1
-            searchIcon.Text = "⌕"
+            searchIcon.Text = "🔍"
             searchIcon.TextColor3 = colors.text
             searchIcon.TextTransparency = 0.2
             searchIcon.Font = Enum.Font.GothamBold
@@ -7835,7 +8082,7 @@ end)()
                                     self._lastAllowFire = now
                                     wasAllowed[key] = true
                                     if _G.coreNotify then
-                                        _G.coreNotify.show("Auto TP on Allow", "Allow détecté → Full Execute")
+                                        _G.coreNotify.show("Auto TP on Allow", "Allow détecté ’ Full Execute")
                                     end
                                     pcall(function()
                                         HALF:execute(true)
@@ -7870,7 +8117,7 @@ end)()
             if _G.coreNotify then
                 _G.coreNotify.show(
                     "Auto Tp on Unlock",
-                    "Broke into → Semi TP slot " .. tostring(HALF.selectedSlot or 1)
+                    "Broke into ’ Semi TP slot " .. tostring(HALF.selectedSlot or 1)
                 )
             end
             pcall(function()
@@ -8027,6 +8274,9 @@ end)()
     -- Instant Steal V2 Panel — follows main KiroHub theme (T / Theme)
     -- Uses existing HALF logic from this hub
     -- ============================================================
+    -- ============================================================
+    -- Instant Steal V2 Panel ("Halfway Steal" style)
+    -- ============================================================
     _G.InstantStealV2 = (function()
         local Players = game:GetService("Players")
         local UIS = game:GetService("UserInputService")
@@ -8047,150 +8297,6 @@ end)()
                 if type(gethui) == "function" then purge(gethui()) end
             end)
             pcall(function() purge(game:GetService("CoreGui")) end)
-        end
-
-        local function makeToggleRow(parent, order, title, getOn, setOn)
-            local cardBg = (T and T.Card) or Color3.fromRGB(24, 16, 38)
-            local textCol = (T and T.Text) or Color3.fromRGB(245, 240, 255)
-            local softCol = (T and T.Soft) or Color3.fromRGB(28, 18, 42)
-            local muteCol = (T and T.TextMute) or Color3.fromRGB(110, 95, 140)
-            local acc = (Theme and Theme.c1) or (T and T.Primary) or Color3.fromRGB(168, 85, 247)
-            local white = (T and T.White) or Color3.fromRGB(255, 255, 255)
-
-            local card = Instance.new("Frame")
-            card.Name = "ToggleRow_" .. tostring(title):gsub("%W", "_")
-            card.Size = UDim2.new(1, 0, 0, 34)
-            card.BackgroundColor3 = cardBg
-            card.BorderSizePixel = 0
-            card.LayoutOrder = order
-            card.Parent = parent
-            pcall(function() trackBgFrame(card, "Card") end)
-            Corner(card, 12)
-
-            local nameLbl = Instance.new("TextLabel")
-            nameLbl.BackgroundTransparency = 1
-            nameLbl.Size = UDim2.new(1, -58, 1, 0)
-            nameLbl.Position = UDim2.new(0, 12, 0, 0)
-            nameLbl.Font = Enum.Font.GothamBold
-            nameLbl.TextSize = 12
-            nameLbl.TextColor3 = textCol
-            nameLbl.TextXAlignment = Enum.TextXAlignment.Left
-            nameLbl.TextYAlignment = Enum.TextYAlignment.Center
-            nameLbl.TextTruncate = Enum.TextTruncate.AtEnd
-            nameLbl.Text = tostring(title)
-            nameLbl.Parent = card
-
-            local track = Instance.new("Frame")
-            track.Size = UDim2.new(0, 38, 0, 20)
-            track.Position = UDim2.new(1, -48, 0.5, -10)
-            track.BackgroundColor3 = softCol
-            track.BorderSizePixel = 0
-            track.Parent = card
-            pcall(function() trackBgFrame(track, "Soft") end)
-            Corner(track, 10)
-
-            local knob = Instance.new("Frame")
-            knob.Size = UDim2.new(0, 16, 0, 16)
-            knob.Position = UDim2.new(0, 2, 0.5, -8)
-            knob.BackgroundColor3 = muteCol
-            knob.BorderSizePixel = 0
-            knob.Parent = track
-            Corner(knob, 8)
-
-            local on = false
-            pcall(function() on = getOn() and true or false end)
-
-            local function paint(anim)
-                local col = on and acc or softCol
-                local pos = on and UDim2.new(1, -18, 0.5, -8) or UDim2.new(0, 2, 0.5, -8)
-                local kcol = on and white or muteCol
-                if anim then
-                    Tween(track, F, { BackgroundColor3 = col })
-                    Tween(knob, F, { Position = pos, BackgroundColor3 = kcol })
-                else
-                    track.BackgroundColor3 = col
-                    knob.Position = pos
-                    knob.BackgroundColor3 = kcol
-                end
-            end
-            paint(false)
-
-            local function doToggle()
-                on = not on
-                paint(true)
-                pcall(function() setOn(on) end)
-            end
-
-            local btn = Instance.new("TextButton")
-            btn.Size = UDim2.new(1, 0, 1, 0)
-            btn.BackgroundTransparency = 1
-            btn.Text = ""
-            btn.Parent = card
-            btn.MouseButton1Click:Connect(doToggle)
-
-            -- Clic droit = keybind (comme le hub principal)
-            pcall(function()
-                local bindFn = attachKeybind or _G.__KiroBridge and _G.__KiroBridge.attachKeybind
-                if type(bindFn) == "function" then
-                    bindFn(btn, nameLbl, tostring(title), doToggle)
-                end
-            end)
-
-            return card
-        end
-
-        local function makeActionBtn(parent, order, text, cb)
-            local cardBg = (T and T.Card) or Color3.fromRGB(24, 16, 38)
-            local hoverBg = (T and T.CardHover) or Color3.fromRGB(34, 22, 52)
-            local textCol = (T and T.Text) or Color3.fromRGB(245, 240, 255)
-
-            local card = Instance.new("Frame")
-            card.Size = UDim2.new(1, 0, 0, 36)
-            card.BackgroundColor3 = cardBg
-            card.BorderSizePixel = 0
-            card.LayoutOrder = order
-            card.Parent = parent
-            pcall(function() trackBgFrame(card, "Card") end)
-            Corner(card, 12)
-
-            local lbl = Instance.new("TextLabel")
-            lbl.Size = UDim2.new(1, -16, 1, 0)
-            lbl.Position = UDim2.new(0, 12, 0, 0)
-            lbl.BackgroundTransparency = 1
-            lbl.Text = text
-            lbl.TextColor3 = textCol
-            lbl.TextSize = 13
-            lbl.Font = Enum.Font.GothamBold
-            lbl.TextXAlignment = Enum.TextXAlignment.Left
-            lbl.TextYAlignment = Enum.TextYAlignment.Center
-            lbl.Parent = card
-
-            local function press()
-                if cb then pcall(cb) end
-            end
-
-            local btn = Instance.new("TextButton")
-            btn.Size = UDim2.new(1, 0, 1, 0)
-            btn.BackgroundTransparency = 1
-            btn.Text = ""
-            btn.Parent = card
-            btn.MouseButton1Click:Connect(press)
-            btn.MouseEnter:Connect(function()
-                Tween(card, F, { BackgroundColor3 = hoverBg })
-            end)
-            btn.MouseLeave:Connect(function()
-                Tween(card, F, { BackgroundColor3 = (T and T.Card) or cardBg })
-            end)
-
-            -- Clic droit = keybind (comme le hub principal)
-            pcall(function()
-                local bindFn = attachKeybind or _G.__KiroBridge and _G.__KiroBridge.attachKeybind
-                if type(bindFn) == "function" then
-                    bindFn(btn, lbl, tostring(text), press)
-                end
-            end)
-
-            return card
         end
 
         local function build()
@@ -8219,19 +8325,23 @@ end)()
             end)
             gui.Parent = parent
 
+            local H = _G.HALF
+            local ISV2_NORMAL_H = 252
+            local ISV2_TITLE_H = 36
+            local isv2Minimized = false
+
             mainFrame = Instance.new("Frame")
             mainFrame.Name = "Frame"
-            mainFrame.Size = UDim2.new(0, 240, 0, 280)
+            mainFrame.Size = UDim2.new(0, 204, 0, ISV2_NORMAL_H)
             mainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
             mainFrame.Position = UDim2.new(0.5, 0, 0.42, 0)
-            mainFrame.BackgroundColor3 = (T and T.Bg) or Color3.fromRGB(14, 10, 22)
-            mainFrame.BackgroundTransparency = 0.02
+            mainFrame.BackgroundColor3 = Color3.fromRGB(10, 16, 16)
+            mainFrame.BackgroundTransparency = 0
             mainFrame.BorderSizePixel = 0
             mainFrame.Active = true
             mainFrame.Parent = gui
-            pcall(function() trackBgFrame(mainFrame, "Bg") end)
-            Corner(mainFrame, 14)
-            pcall(function() GradStroke(mainFrame, 1.6, 0.25, 90) end)
+            Corner(mainFrame, 12)
+            Stroke(mainFrame, Color3.fromRGB(180, 140, 55), 1.5, 0)
             pcall(function()
                 if type(_G._KiroStyleLikeHub) == "function" then
                     _G._KiroStyleLikeHub(mainFrame, nil)
@@ -8246,279 +8356,386 @@ end)()
                 end
             end)
 
-            -- Title bar (same style as hub panels)
+            -- Title bar
             local titleBar = Instance.new("Frame")
             titleBar.Name = "TitleBar"
-            titleBar.Size = UDim2.new(1, 0, 0, 36)
-            titleBar.BackgroundColor3 = (T and T.BgDeep) or Color3.fromRGB(8, 6, 14)
-            titleBar.BackgroundTransparency = 0.05
+            titleBar.Size = UDim2.new(1, 0, 0, ISV2_TITLE_H)
+            titleBar.BackgroundTransparency = 1
             titleBar.BorderSizePixel = 0
             titleBar.Active = true
+            titleBar.ZIndex = 5
             titleBar.Parent = mainFrame
-            pcall(function() trackBgFrame(titleBar, "BgDeep") end)
-            Corner(titleBar, 12)
-            local titleFix = Instance.new("Frame")
-            titleFix.Size = UDim2.new(1, 0, 0, 10)
-            titleFix.Position = UDim2.new(0, 0, 1, -10)
-            titleFix.BackgroundColor3 = (T and T.BgDeep) or Color3.fromRGB(8, 6, 14)
-            titleFix.BorderSizePixel = 0
-            titleFix.Parent = titleBar
-            pcall(function() trackBgFrame(titleFix, "BgDeep") end)
 
-            -- accent line under title (hub style)
-            local accent = Instance.new("Frame")
-            accent.Name = "HubAccent"
-            accent.Size = UDim2.new(1, 0, 0, 2)
-            accent.Position = UDim2.new(0, 0, 1, -2)
-            accent.BorderSizePixel = 0
-            accent.BackgroundColor3 = (Theme and Theme.c1) or Color3.fromRGB(168, 85, 247)
-            accent.ZIndex = 5
-            accent.Parent = titleBar
-            pcall(function() trackSolid(accent, 1) end)
+            -- Vertical yellow bar accent on left
+            local yellowBar = Instance.new("Frame")
+            yellowBar.Name = "YellowBar"
+            yellowBar.Size = UDim2.new(0, 3, 0, 15)
+            yellowBar.Position = UDim2.new(0, 10, 0.5, -8)
+            yellowBar.BackgroundColor3 = Color3.fromRGB(245, 195, 35)
+            yellowBar.BorderSizePixel = 0
+            yellowBar.ZIndex = 6
+            yellowBar.Parent = titleBar
+            Corner(yellowBar, 2)
 
-            local title = Lbl(titleBar, "Instant Steal V2", 12, (T and T.Text) or Color3.fromRGB(245, 240, 255), Enum.Font.GothamBold)
-            title.Size = UDim2.new(1, -70, 1, 0)
-            title.Position = UDim2.new(0, 12, 0, 0)
+            local title = Instance.new("TextLabel")
+            title.Name = "Title"
+            title.Size = UDim2.new(1, -56, 1, 0)
+            title.Position = UDim2.new(0, 20, 0, 0)
+            title.BackgroundTransparency = 1
+            title.Text = "Halfway Steal"
+            title.TextColor3 = Color3.fromRGB(255, 255, 255)
+            title.TextSize = 13
+            title.Font = Enum.Font.GothamBold
+            title.TextXAlignment = Enum.TextXAlignment.Left
             title.TextYAlignment = Enum.TextYAlignment.Center
+            title.ZIndex = 6
+            title.Parent = titleBar
 
             local minBtn = Instance.new("TextButton")
             minBtn.Name = "MinBtn"
-            minBtn.Size = UDim2.new(0, 22, 0, 22)
-            minBtn.Position = UDim2.new(1, -28, 0.5, -11)
-            minBtn.BackgroundColor3 = (T and T.BgDeep) or Color3.fromRGB(8, 6, 14)
-            minBtn.Text = "–"
+            minBtn.Size = UDim2.new(0, 24, 0, 24)
+            minBtn.Position = UDim2.new(1, -34, 0.5, -12)
+            minBtn.BackgroundColor3 = Color3.fromRGB(130, 160, 185)
+            minBtn.Text = "-"
             minBtn.Font = Enum.Font.GothamBold
-            minBtn.TextSize = 14
-            minBtn.TextColor3 = (T and T.TextDim) or Color3.fromRGB(170, 150, 200)
+            minBtn.TextSize = 16
+            minBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
             minBtn.AutoButtonColor = false
             minBtn.Active = true
             minBtn.ZIndex = 30
             minBtn.Parent = titleBar
-            Corner(minBtn, 12)
+            Corner(minBtn, 8)
 
-            local settingsBtn = Instance.new("TextButton")
-            settingsBtn.Name = "SettingsBtn"
-            settingsBtn.Size = UDim2.new(0, 22, 0, 22)
-            settingsBtn.Position = UDim2.new(1, -54, 0.5, -11)
-            settingsBtn.BackgroundColor3 = (T and T.BgDeep) or Color3.fromRGB(8, 6, 14)
-            settingsBtn.Text = "⚙"
-            settingsBtn.Font = Enum.Font.GothamBold
-            settingsBtn.TextSize = 12
-            settingsBtn.TextColor3 = (T and T.Text) or Color3.fromRGB(245, 240, 255)
-            settingsBtn.AutoButtonColor = false
-            settingsBtn.Parent = titleBar
-            Corner(settingsBtn, 12)
-            settingsBtn.MouseEnter:Connect(function()
-                Tween(settingsBtn, F, { BackgroundColor3 = (T and T.CardHover) or Color3.fromRGB(34, 22, 52) })
-            end)
-            settingsBtn.MouseLeave:Connect(function()
-                Tween(settingsBtn, F, { BackgroundColor3 = (T and T.BgDeep) or Color3.fromRGB(8, 6, 14) })
-            end)
-
-            -- Content
             local content = Instance.new("Frame")
             content.Name = "Content"
-            content.Size = UDim2.new(1, 0, 1, -42)
-            content.Position = UDim2.new(0, 0, 0, 40)
+            content.Size = UDim2.new(1, 0, 1, -ISV2_TITLE_H)
+            content.Position = UDim2.new(0, 0, 0, ISV2_TITLE_H)
             content.BackgroundTransparency = 1
+            content.ZIndex = 5
             content.Parent = mainFrame
+
             local cPad = Instance.new("UIPadding")
-            cPad.PaddingTop = UDim.new(0, 6)
+            cPad.PaddingTop = UDim.new(0, 4)
             cPad.PaddingLeft = UDim.new(0, 10)
             cPad.PaddingRight = UDim.new(0, 10)
             cPad.PaddingBottom = UDim.new(0, 8)
             cPad.Parent = content
+
             local cList = Instance.new("UIListLayout")
             cList.Padding = UDim.new(0, 6)
             cList.SortOrder = Enum.SortOrder.LayoutOrder
             cList.Parent = content
 
-            -- Settings view
-            local settingsView = Instance.new("Frame")
-            settingsView.Name = "SettingsView"
-            settingsView.Size = UDim2.new(1, 0, 1, -42)
-            settingsView.Position = UDim2.new(0, 0, 0, 40)
-            settingsView.BackgroundTransparency = 1
-            settingsView.Visible = false
-            settingsView.Parent = mainFrame
-            local sPad = Instance.new("UIPadding")
-            sPad.PaddingTop = UDim.new(0, 6)
-            sPad.PaddingLeft = UDim.new(0, 10)
-            sPad.PaddingRight = UDim.new(0, 10)
-            sPad.Parent = settingsView
-            local sList = Instance.new("UIListLayout")
-            sList.Padding = UDim.new(0, 6)
-            sList.SortOrder = Enum.SortOrder.LayoutOrder
-            sList.Parent = settingsView
+            -- 1. Activate (Reset) button
+            local actCard = Instance.new("Frame")
+            actCard.Name = "ActCard"
+            actCard.Size = UDim2.new(1, 0, 0, 34)
+            actCard.BackgroundColor3 = Color3.fromRGB(8, 14, 20)
+            actCard.BorderSizePixel = 0
+            actCard.LayoutOrder = 1
+            actCard.ZIndex = 6
+            actCard.Parent = content
+            Corner(actCard, 8)
 
-            local setHeader = Instance.new("Frame")
-            setHeader.Size = UDim2.new(1, 0, 0, 28)
-            setHeader.BackgroundTransparency = 1
-            setHeader.LayoutOrder = 1
-            setHeader.Parent = settingsView
-            local backBtn = Instance.new("TextButton")
-            backBtn.Size = UDim2.new(0, 28, 0, 24)
-            backBtn.Position = UDim2.new(0, 0, 0.5, -12)
-            backBtn.BackgroundColor3 = (T and T.Card) or Color3.fromRGB(24, 16, 38)
-            backBtn.Text = "←"
-            backBtn.TextColor3 = (T and T.Text) or Color3.fromRGB(245, 240, 255)
-            backBtn.TextSize = 16
-            backBtn.Font = Enum.Font.GothamBold
-            backBtn.AutoButtonColor = false
-            backBtn.Parent = setHeader
-            Corner(backBtn, 10)
-            local setTitle = Instance.new("TextLabel")
-            setTitle.Size = UDim2.new(1, -36, 1, 0)
-            setTitle.Position = UDim2.new(0, 34, 0, 0)
-            setTitle.BackgroundTransparency = 1
-            setTitle.Text = "Settings"
-            setTitle.TextColor3 = (T and T.Text) or Color3.fromRGB(245, 240, 255)
-            setTitle.TextSize = 13
-            setTitle.Font = Enum.Font.GothamBold
-            setTitle.TextXAlignment = Enum.TextXAlignment.Left
-            setTitle.Parent = setHeader
+            local actLbl = Instance.new("TextLabel")
+            actLbl.Size = UDim2.new(1, -20, 1, 0)
+            actLbl.Position = UDim2.new(0, 12, 0, 0)
+            actLbl.BackgroundTransparency = 1
+            actLbl.Text = "Activate (Reset)"
+            actLbl.TextColor3 = Color3.fromRGB(255, 255, 255)
+            actLbl.TextSize = 13
+            actLbl.Font = Enum.Font.GothamBold
+            actLbl.TextXAlignment = Enum.TextXAlignment.Left
+            actLbl.TextYAlignment = Enum.TextYAlignment.Center
+            actLbl.ZIndex = 7
+            actLbl.Parent = actCard
 
-            local H = _G.HALF
-
-            makeToggleRow(settingsView, 10, "Auto Potion", function()
-                return H and H.potion
-            end, function(on)
-                if H and H.setPotion then H:setPotion(on) end
-                if Config then Config.set("isv2_autoPotion", on) end
+            local actBtn = Instance.new("TextButton")
+            actBtn.Size = UDim2.new(1, 0, 1, 0)
+            actBtn.BackgroundTransparency = 1
+            actBtn.Text = ""
+            actBtn.ZIndex = 8
+            actBtn.Parent = actCard
+            actBtn.MouseEnter:Connect(function()
+                Tween(actCard, F, { BackgroundColor3 = Color3.fromRGB(18, 26, 36) })
             end)
-
-            makeToggleRow(settingsView, 20, "Auto Full AP Spam", function()
-                return H and H.autoAPSpam
-            end, function(on)
-                if H then
-                    H.autoAPSpam = on
-                    if on then H.autoSemiAPSpam = false end
-                end
-                if Config then
-                    Config.set("isv2_autoAPSpam", on)
-                    if on then Config.set("isv2_autoSemiAPSpam", false) end
+            actBtn.MouseLeave:Connect(function()
+                Tween(actCard, F, { BackgroundColor3 = Color3.fromRGB(8, 14, 20) })
+            end)
+            actBtn.MouseButton1Click:Connect(function()
+                if H and H.activate then H:activate() end
+            end)
+            pcall(function()
+                if type(attachKeybind) == "function" then
+                    attachKeybind(actBtn, actLbl, "Activate (Reset)", function()
+                        if H and H.activate then H:activate() end
+                    end)
                 end
             end)
 
-            makeToggleRow(settingsView, 21, "Auto Semi AP Spam", function()
-                return H and H.autoSemiAPSpam
-            end, function(on)
-                if H then
-                    H.autoSemiAPSpam = on
-                    if on then H.autoAPSpam = false end
+            -- 2. Steal Now button
+            local stealCard = Instance.new("Frame")
+            stealCard.Name = "StealCard"
+            stealCard.Size = UDim2.new(1, 0, 0, 34)
+            stealCard.BackgroundColor3 = Color3.fromRGB(8, 14, 20)
+            stealCard.BorderSizePixel = 0
+            stealCard.LayoutOrder = 2
+            stealCard.ZIndex = 6
+            stealCard.Parent = content
+            Corner(stealCard, 8)
+
+            local stealLbl = Instance.new("TextLabel")
+            stealLbl.Size = UDim2.new(1, -20, 1, 0)
+            stealLbl.Position = UDim2.new(0, 12, 0, 0)
+            stealLbl.BackgroundTransparency = 1
+            stealLbl.Text = "Steal Now"
+            stealLbl.TextColor3 = Color3.fromRGB(255, 255, 255)
+            stealLbl.TextSize = 13
+            stealLbl.Font = Enum.Font.GothamBold
+            stealLbl.TextXAlignment = Enum.TextXAlignment.Left
+            stealLbl.TextYAlignment = Enum.TextYAlignment.Center
+            stealLbl.ZIndex = 7
+            stealLbl.Parent = stealCard
+
+            local stealBtn = Instance.new("TextButton")
+            stealBtn.Size = UDim2.new(1, 0, 1, 0)
+            stealBtn.BackgroundTransparency = 1
+            stealBtn.Text = ""
+            stealBtn.ZIndex = 8
+            stealBtn.Parent = stealCard
+            stealBtn.MouseEnter:Connect(function()
+                Tween(stealCard, F, { BackgroundColor3 = Color3.fromRGB(18, 26, 36) })
+            end)
+            stealBtn.MouseLeave:Connect(function()
+                Tween(stealCard, F, { BackgroundColor3 = Color3.fromRGB(8, 14, 20) })
+            end)
+            stealBtn.MouseButton1Click:Connect(function()
+                if H and H.execute then
+                    local isFull = (H and H.autoAPSpam) and true or false
+                    H:execute(isFull)
                 end
-                if Config then
-                    Config.set("isv2_autoSemiAPSpam", on)
-                    if on then Config.set("isv2_autoAPSpam", false) end
+            end)
+            pcall(function()
+                if type(attachKeybind) == "function" then
+                    attachKeybind(stealBtn, stealLbl, "Steal Now", function()
+                        if H and H.execute then H:execute(false) end
+                    end)
                 end
             end)
 
-            makeToggleRow(settingsView, 23, "Auto TP on Allow", function()
-                return H and H.autoTpOnAllow
-            end, function(on)
-                if H and H.setAutoTpOnAllow then H:setAutoTpOnAllow(on)
-                elseif H then H.autoTpOnAllow = on end
-                if Config then Config.set("isv2_autoTpOnAllow", on) end
-            end)
+            -- 3. Use Potion toggle row
+            local potCard = Instance.new("Frame")
+            potCard.Name = "PotionCard"
+            potCard.Size = UDim2.new(1, 0, 0, 34)
+            potCard.BackgroundColor3 = Color3.fromRGB(8, 14, 20)
+            potCard.BorderSizePixel = 0
+            potCard.LayoutOrder = 3
+            potCard.ZIndex = 6
+            potCard.Parent = content
+            Corner(potCard, 8)
+            Stroke(potCard, Color3.fromRGB(180, 140, 55), 1.2, 0)
 
-            makeToggleRow(settingsView, 24, "Auto TP on Unlock", function()
-                return H and H.autoTpOnUnlock
-            end, function(on)
-                if H and H.setAutoTpOnUnlock then H:setAutoTpOnUnlock(on)
-                elseif H then H.autoTpOnUnlock = on end
-                if Config then Config.set("isv2_autoTpOnUnlock", on) end
-            end)
+            local potLbl = Instance.new("TextLabel")
+            potLbl.Size = UDim2.new(1, -60, 1, 0)
+            potLbl.Position = UDim2.new(0, 12, 0, 0)
+            potLbl.BackgroundTransparency = 1
+            potLbl.Text = "Use Potion"
+            potLbl.TextColor3 = Color3.fromRGB(240, 240, 240)
+            potLbl.TextSize = 12
+            potLbl.Font = Enum.Font.GothamBold
+            potLbl.TextXAlignment = Enum.TextXAlignment.Left
+            potLbl.TextYAlignment = Enum.TextYAlignment.Center
+            potLbl.ZIndex = 7
+            potLbl.Parent = potCard
 
-            if H and H.setAutoWalk then
-                makeToggleRow(settingsView, 30, "Auto Walk", function()
-                    return H and H.autoWalk
-                end, function(on)
-                    if H and H.setAutoWalk then H:setAutoWalk(on)
-                    elseif H then H.autoWalk = on end
-                    if Config then Config.set("isv2_autoWalk", on) end
-                end)
+            local potTrack = Instance.new("Frame")
+            potTrack.Size = UDim2.new(0, 40, 0, 20)
+            potTrack.Position = UDim2.new(1, -48, 0.5, -10)
+            potTrack.BackgroundColor3 = Color3.fromRGB(25, 32, 40)
+            potTrack.BorderSizePixel = 0
+            potTrack.ZIndex = 7
+            potTrack.Parent = potCard
+            Corner(potTrack, 10)
+
+            local potKnob = Instance.new("Frame")
+            potKnob.Size = UDim2.new(0, 16, 0, 16)
+            potKnob.Position = UDim2.new(0, 2, 0.5, -8)
+            potKnob.BackgroundColor3 = Color3.fromRGB(150, 160, 175)
+            potKnob.BorderSizePixel = 0
+            potKnob.ZIndex = 8
+            potKnob.Parent = potTrack
+            Corner(potKnob, 8)
+
+            local potionOn = (H and H.potion) and true or false
+            local function paintPotion(anim)
+                local trackCol = potionOn and Color3.fromRGB(130, 160, 185) or Color3.fromRGB(25, 32, 40)
+                local knobCol = potionOn and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(150, 160, 175)
+                local knobPos = potionOn and UDim2.new(1, -18, 0.5, -8) or UDim2.new(0, 2, 0.5, -8)
+                if anim then
+                    Tween(potTrack, F, { BackgroundColor3 = trackCol })
+                    Tween(potKnob, F, { Position = knobPos, BackgroundColor3 = knobCol })
+                else
+                    potTrack.BackgroundColor3 = trackCol
+                    potKnob.Position = knobPos
+                    potKnob.BackgroundColor3 = knobCol
+                end
+            end
+            paintPotion(false)
+
+            local function togglePotion()
+                potionOn = not potionOn
+                paintPotion(true)
+                if H and H.setPotion then H:setPotion(potionOn)
+                elseif H then H.potion = potionOn end
+                if Config then Config.set("isv2_autoPotion", potionOn) end
             end
 
-            makeToggleRow(settingsView, 40, "Auto Activate", function()
-                return H and H.autoActivate
-            end, function(on)
-                if H then
-                    H.autoActivate = on
-                    if H.setAutoActivate then H:setAutoActivate(on) end
-                    if on and H.activate then H:activate() end
+            local potBtn = Instance.new("TextButton")
+            potBtn.Size = UDim2.new(1, 0, 1, 0)
+            potBtn.BackgroundTransparency = 1
+            potBtn.Text = ""
+            potBtn.ZIndex = 9
+            potBtn.Parent = potCard
+            potBtn.MouseButton1Click:Connect(togglePotion)
+            pcall(function()
+                if type(attachKeybind) == "function" then
+                    attachKeybind(potBtn, potLbl, "Use Potion", togglePotion)
                 end
-                if Config then Config.set("isv2_autoActivate", on) end
             end)
 
-            makeToggleRow(settingsView, 41, "Grapple Boost", function()
-                return H and H.grappleBoost
-            end, function(on)
-                if H and H.setGrappleBoost then
-                    H:setGrappleBoost(on)
-                elseif H then
-                    H.grappleBoost = on and true or false
+            -- 4. Grapple Boost toggle row
+            local grapCard = Instance.new("Frame")
+            grapCard.Name = "GrappleCard"
+            grapCard.Size = UDim2.new(1, 0, 0, 34)
+            grapCard.BackgroundColor3 = Color3.fromRGB(8, 14, 20)
+            grapCard.BorderSizePixel = 0
+            grapCard.LayoutOrder = 4
+            grapCard.ZIndex = 6
+            grapCard.Parent = content
+            Corner(grapCard, 8)
+            Stroke(grapCard, Color3.fromRGB(180, 140, 55), 1.2, 0)
+
+            local grapLbl = Instance.new("TextLabel")
+            grapLbl.Size = UDim2.new(1, -60, 1, 0)
+            grapLbl.Position = UDim2.new(0, 12, 0, 0)
+            grapLbl.BackgroundTransparency = 1
+            grapLbl.Text = "Grapple Boost"
+            grapLbl.TextColor3 = Color3.fromRGB(240, 240, 240)
+            grapLbl.TextSize = 12
+            grapLbl.Font = Enum.Font.GothamBold
+            grapLbl.TextXAlignment = Enum.TextXAlignment.Left
+            grapLbl.TextYAlignment = Enum.TextYAlignment.Center
+            grapLbl.ZIndex = 7
+            grapLbl.Parent = grapCard
+
+            local grapTrack = Instance.new("Frame")
+            grapTrack.Size = UDim2.new(0, 40, 0, 20)
+            grapTrack.Position = UDim2.new(1, -48, 0.5, -10)
+            grapTrack.BackgroundColor3 = Color3.fromRGB(25, 32, 40)
+            grapTrack.BorderSizePixel = 0
+            grapTrack.ZIndex = 7
+            grapTrack.Parent = grapCard
+            Corner(grapTrack, 10)
+
+            local grapKnob = Instance.new("Frame")
+            grapKnob.Size = UDim2.new(0, 16, 0, 16)
+            grapKnob.Position = UDim2.new(0, 2, 0.5, -8)
+            grapKnob.BackgroundColor3 = Color3.fromRGB(150, 160, 175)
+            grapKnob.BorderSizePixel = 0
+            grapKnob.ZIndex = 8
+            grapKnob.Parent = grapTrack
+            Corner(grapKnob, 8)
+
+            local grappleOn = (H and H.grappleBoost) and true or false
+            local function paintGrapple(anim)
+                local trackCol = grappleOn and Color3.fromRGB(130, 160, 185) or Color3.fromRGB(25, 32, 40)
+                local knobCol = grappleOn and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(150, 160, 175)
+                local knobPos = grappleOn and UDim2.new(1, -18, 0.5, -8) or UDim2.new(0, 2, 0.5, -8)
+                if anim then
+                    Tween(grapTrack, F, { BackgroundColor3 = trackCol })
+                    Tween(grapKnob, F, { Position = knobPos, BackgroundColor3 = knobCol })
+                else
+                    grapTrack.BackgroundColor3 = trackCol
+                    grapKnob.Position = knobPos
+                    grapKnob.BackgroundColor3 = knobCol
                 end
-                if Config then Config.set("isv2_grappleBoost", on and true or false) end
+            end
+            paintGrapple(false)
+
+            local function toggleGrapple()
+                grappleOn = not grappleOn
+                paintGrapple(true)
+                if H and H.setGrappleBoost then H:setGrappleBoost(grappleOn)
+                elseif H then H.grappleBoost = grappleOn end
+                if Config then Config.set("isv2_grappleBoost", grappleOn) end
+            end
+
+            local grapBtn = Instance.new("TextButton")
+            grapBtn.Size = UDim2.new(1, 0, 1, 0)
+            grapBtn.BackgroundTransparency = 1
+            grapBtn.Text = ""
+            grapBtn.ZIndex = 9
+            grapBtn.Parent = grapCard
+            grapBtn.MouseButton1Click:Connect(toggleGrapple)
+            pcall(function()
+                if type(attachKeybind) == "function" then
+                    attachKeybind(grapBtn, grapLbl, "Grapple Boost", toggleGrapple)
+                end
             end)
 
-            -- Slot selector
-            local slotRow = Instance.new("Frame")
-            slotRow.Size = UDim2.new(1, 0, 0, 48)
-            slotRow.BackgroundColor3 = (T and T.Card) or Color3.fromRGB(24, 16, 38)
-            slotRow.BorderSizePixel = 0
-            slotRow.LayoutOrder = 1
-            slotRow.Parent = content
-            pcall(function() trackBgFrame(slotRow, "Card") end)
-            Corner(slotRow, 12)
+            -- 5. Slot selector row
+            local slotCard = Instance.new("Frame")
+            slotCard.Name = "SlotCard"
+            slotCard.Size = UDim2.new(1, 0, 0, 36)
+            slotCard.BackgroundColor3 = Color3.fromRGB(8, 14, 20)
+            slotCard.BorderSizePixel = 0
+            slotCard.LayoutOrder = 5
+            slotCard.ZIndex = 6
+            slotCard.Parent = content
+            Corner(slotCard, 8)
+            Stroke(slotCard, Color3.fromRGB(180, 140, 55), 1.2, 0)
 
-            local slotTitle = Instance.new("TextLabel")
-            slotTitle.Size = UDim2.new(1, 0, 0, 14)
-            slotTitle.Position = UDim2.new(0, 0, 0, 4)
-            slotTitle.BackgroundTransparency = 1
-            slotTitle.Text = "Slot"
-            slotTitle.TextColor3 = (T and T.TextDim) or Color3.fromRGB(170, 150, 200)
-            slotTitle.TextSize = 11
-            slotTitle.Font = Enum.Font.GothamBold
-            slotTitle.TextXAlignment = Enum.TextXAlignment.Center
-            slotTitle.Parent = slotRow
-
-            local softCol = (T and T.Soft) or Color3.fromRGB(28, 18, 42)
-            local textCol = (T and T.Text) or Color3.fromRGB(245, 240, 255)
-
-            local leftArrow = Instance.new("TextButton")
-            leftArrow.Size = UDim2.new(0, 32, 0, 24)
-            leftArrow.Position = UDim2.new(0, 10, 1, -28)
-            leftArrow.BackgroundColor3 = softCol
-            leftArrow.Text = "◄"
-            leftArrow.TextColor3 = textCol
-            leftArrow.TextSize = 13
-            leftArrow.Font = Enum.Font.GothamBold
-            leftArrow.AutoButtonColor = false
-            leftArrow.Parent = slotRow
-            Corner(leftArrow, 8)
+            local minusBtn = Instance.new("TextButton")
+            minusBtn.Name = "MinusBtn"
+            minusBtn.Size = UDim2.new(0, 34, 0, 26)
+            minusBtn.Position = UDim2.new(0, 5, 0.5, -13)
+            minusBtn.BackgroundColor3 = Color3.fromRGB(130, 160, 185)
+            minusBtn.Text = "-"
+            minusBtn.TextColor3 = Color3.fromRGB(245, 195, 35)
+            minusBtn.TextSize = 18
+            minusBtn.Font = Enum.Font.GothamBold
+            minusBtn.AutoButtonColor = false
+            minusBtn.ZIndex = 7
+            minusBtn.Parent = slotCard
+            Corner(minusBtn, 6)
 
             local slotLbl = Instance.new("TextLabel")
-            slotLbl.Size = UDim2.new(1, -84, 0, 24)
-            slotLbl.Position = UDim2.new(0, 42, 1, -28)
+            slotLbl.Name = "SlotLbl"
+            slotLbl.Size = UDim2.new(1, -84, 1, 0)
+            slotLbl.Position = UDim2.new(0, 42, 0, 0)
             slotLbl.BackgroundTransparency = 1
-            slotLbl.Text = "SLOT " .. tostring((H and H.selectedSlot) or 1)
-            slotLbl.TextColor3 = textCol
-            slotLbl.TextSize = 14
+            slotLbl.Text = "Slot: " .. tostring((H and H.selectedSlot) or 1)
+            slotLbl.TextColor3 = Color3.fromRGB(255, 255, 255)
+            slotLbl.TextSize = 13
             slotLbl.Font = Enum.Font.GothamBold
             slotLbl.TextXAlignment = Enum.TextXAlignment.Center
-            slotLbl.Parent = slotRow
+            slotLbl.TextYAlignment = Enum.TextYAlignment.Center
+            slotLbl.ZIndex = 7
+            slotLbl.Parent = slotCard
 
-            local rightArrow = Instance.new("TextButton")
-            rightArrow.Size = UDim2.new(0, 32, 0, 24)
-            rightArrow.Position = UDim2.new(1, -42, 1, -28)
-            rightArrow.BackgroundColor3 = softCol
-            rightArrow.Text = "►"
-            rightArrow.TextColor3 = textCol
-            rightArrow.TextSize = 13
-            rightArrow.Font = Enum.Font.GothamBold
-            rightArrow.AutoButtonColor = false
-            rightArrow.Parent = slotRow
-            Corner(rightArrow, 8)
+            local plusBtn = Instance.new("TextButton")
+            plusBtn.Name = "PlusBtn"
+            plusBtn.Size = UDim2.new(0, 34, 0, 26)
+            plusBtn.Position = UDim2.new(1, -39, 0.5, -13)
+            plusBtn.BackgroundColor3 = Color3.fromRGB(130, 160, 185)
+            plusBtn.Text = "+"
+            plusBtn.TextColor3 = Color3.fromRGB(245, 195, 35)
+            plusBtn.TextSize = 16
+            plusBtn.Font = Enum.Font.GothamBold
+            plusBtn.AutoButtonColor = false
+            plusBtn.ZIndex = 7
+            plusBtn.Parent = slotCard
+            Corner(plusBtn, 6)
 
             local function applySlot(num)
                 num = math.clamp(tonumber(num) or 1, 1, 11)
@@ -8530,96 +8747,41 @@ end)()
                         if H.updateSlotVisuals then pcall(H.updateSlotVisuals) end
                     end
                 end
-                slotLbl.Text = "SLOT " .. tostring(num)
+                slotLbl.Text = "Slot: " .. tostring(num)
                 if Config then Config.set("isv2_slot", num) end
             end
             applySlot((H and H.selectedSlot) or 1)
 
-            leftArrow.MouseButton1Click:Connect(function()
+            minusBtn.MouseButton1Click:Connect(function()
                 local s = ((H and H.selectedSlot) or 1) - 1
                 if s < 1 then s = 11 end
                 applySlot(s)
             end)
-            rightArrow.MouseButton1Click:Connect(function()
+            plusBtn.MouseButton1Click:Connect(function()
                 local s = ((H and H.selectedSlot) or 1) + 1
                 if s > 11 then s = 1 end
                 applySlot(s)
             end)
 
-            makeActionBtn(content, 2, "Activate (Reset)", function()
-                if H and H.activate then H:activate() end
-            end)
-            makeActionBtn(content, 3, "Execute", function()
-                if H and H.execute then H:execute(false) end
-            end)
-            makeActionBtn(content, 4, "Execute (Full)", function()
-                if H and H.execute then H:execute(true) end
-            end)
-
-            local ISV2_NORMAL_H = 280
-            local ISV2_SETTINGS_H = 360
-            local ISV2_TITLE_H = 36
-            local isv2Minimized = false
-            local isv2ExpandedSize = UDim2.new(0, 240, 0, ISV2_NORMAL_H)
-
-            local function showSettings(on)
-                if isv2Minimized then return end
-                settingsView.Visible = on
-                content.Visible = not on
-                settingsBtn.Visible = not on
-                if mainFrame then
-                    local w = mainFrame.Size.X.Offset
-                    if w <= 0 then w = 240 end
-                    local oldH = mainFrame.Size.Y.Offset
-                    if oldH <= 0 then oldH = ISV2_NORMAL_H end
-                    local newH = on and ISV2_SETTINGS_H or ISV2_NORMAL_H
-                    local ap = mainFrame.AnchorPoint
-                    local topY = mainFrame.Position.Y.Offset - oldH * ap.Y
-                    local newPosY = topY + newH * ap.Y
-                    mainFrame.Size = UDim2.new(0, w, 0, newH)
-                    mainFrame.Position = UDim2.new(
-                        mainFrame.Position.X.Scale, mainFrame.Position.X.Offset,
-                        mainFrame.Position.Y.Scale, newPosY
-                    )
-                    isv2ExpandedSize = mainFrame.Size
-                end
-            end
-
+            -- Minimize toggle
             local function toggleMinimize()
                 if not mainFrame or not mainFrame.Parent then return end
                 isv2Minimized = not isv2Minimized
                 if isv2Minimized then
-                    isv2ExpandedSize = mainFrame.Size
-                    if content then content.Visible = false end
-                    if settingsView then settingsView.Visible = false end
-                    if settingsBtn then settingsBtn.Visible = false end
+                    content.Visible = false
                     mainFrame.ClipsDescendants = true
-                    mainFrame.Size = UDim2.new(
-                        mainFrame.Size.X.Scale, mainFrame.Size.X.Offset,
-                        0, ISV2_TITLE_H
-                    )
+                    mainFrame.Size = UDim2.new(0, 204, 0, ISV2_TITLE_H)
                     minBtn.Text = "+"
                 else
-                    mainFrame.Size = isv2ExpandedSize or UDim2.new(0, 240, 0, ISV2_NORMAL_H)
+                    mainFrame.Size = UDim2.new(0, 204, 0, ISV2_NORMAL_H)
                     mainFrame.ClipsDescendants = false
-                    if content then content.Visible = true end
-                    if settingsView then settingsView.Visible = false end
-                    if settingsBtn then settingsBtn.Visible = true end
-                    minBtn.Text = "–"
+                    content.Visible = true
+                    minBtn.Text = "-"
                 end
             end
-
-            -- Un seul connect pour éviter double-toggle (Activated + Click)
             minBtn.Activated:Connect(toggleMinimize)
 
-            settingsBtn.MouseButton1Click:Connect(function()
-                showSettings(not settingsView.Visible)
-            end)
-            backBtn.MouseButton1Click:Connect(function()
-                showSettings(false)
-            end)
-
-            -- Drag (hub style)
+            -- Dragging
             local dragging, dragStart, startPos = false, nil, nil
             titleBar.InputBegan:Connect(function(input)
                 if input.UserInputType == Enum.UserInputType.MouseButton1
@@ -8661,7 +8823,6 @@ end)()
 
         local M = {}
         function M.set(on)
-            -- Panel visibility only — HALF toggles (potion, AP spam, walk, slot…) stay active
             state.open = on and true or false
             if state.open then
                 build()
@@ -8670,7 +8831,6 @@ end)()
                 end)
             else
                 destroy()
-                -- Keep slot selection + tracers + auto features running
                 task.defer(function()
                     if HALF and HALF.selectedSlot and HALF.updateSlotVisuals then
                         pcall(HALF.updateSlotVisuals)
@@ -8688,12 +8848,10 @@ end)()
             return state.open and gui and gui.Parent ~= nil
         end
         function M.repaint()
-            -- Panel is rebuilt with current T/Theme when opened; force restyle if open
             if state.open and mainFrame then
                 pcall(function()
                     if type(_G._KiroStyleLikeHub) == "function" then
-                        local tb = mainFrame:FindFirstChild("TitleBar")
-                        _G._KiroStyleLikeHub(mainFrame, tb)
+                        _G._KiroStyleLikeHub(mainFrame, nil)
                     end
                 end)
             end
@@ -8710,19 +8868,27 @@ end)()
     local LP = Players.LocalPlayer
 
     -- ==========================================
-    -- RESET SYSTEM (Actions Panel Instant Reset)
-    -- Source: SimpleResetGUI ResetPlayer (hipheight + camera lock)
-    -- Used by: Panel Actions + Panel Actions Mobile "Instant Reset"
+    -- RESET SYSTEM (Instant Reset)
+    -- Source: 32e4 Hub / neggys performReset (HipHeight fling + Void + Camera Freeze)
+    -- Used by: Main "Instant Reset" + Panel Actions / Actions Mobile
     -- ==========================================
-    local LP = Players.LocalPlayer
     local Workspace = game:GetService("Workspace")
+    local RunService = game:GetService("RunService")
 
-    local RS = {
-        cooldown = false,
-        lockId = 0,
-        cameraLocked = false,
-        lockedCFrame = nil,
-    }
+    local isResettingFast = false
+    local FLING_TIME = 0.4
+    local FLING_POWER = 50000
+    local USE_VOID = true
+    local VOID_TIME = 0.6
+    local RESET_TIMEOUT = 6
+    local resetting = false
+    local CAM_BIND_INSTARESET = "KiroHub_InstaResetCam"
+
+    local function hide_locally(obj)
+        if obj:IsA("BasePart") or obj:IsA("Decal") then
+            obj.LocalTransparencyModifier = 1
+        end
+    end
 
     local function FixFloating(character)
         if not character or not character.Parent then return end
@@ -8748,92 +8914,125 @@ end)()
         end)
     end
 
-    local function ResetPlayer()
-        if RS.cooldown then return end
-        RS.cooldown = true
+    local function performReset()
+        if resetting then return end
+        local char = LP.Character
+        if not char or not char.Parent then return end
+        local hum = char:FindFirstChildOfClass("Humanoid")
+        if not hum or hum.Health <= 0 then return end
+        local hrp = hum.RootPart or char:FindFirstChild("HumanoidRootPart")
 
-        local character = LP.Character
-        if not character then RS.cooldown = false return end
-        local humanoid = character:FindFirstChildOfClass("Humanoid")
-        if not humanoid or humanoid.Health <= 0 then RS.cooldown = false return end
+        resetting = true
+        isResettingFast = true
 
-        RS.lockId = RS.lockId + 1
-        local myLockId = RS.lockId
-
-        local camera = Workspace.CurrentCamera
-        if camera and not RS.cameraLocked then
-            RS.lockedCFrame = camera.CFrame
-            RS.cameraLocked = true
-            camera.CameraType = Enum.CameraType.Scriptable
-            camera.CFrame = RS.lockedCFrame
-        end
-
-        local originalHipHeight = humanoid.HipHeight
-        if type(originalHipHeight) ~= "number" or originalHipHeight > 10 or originalHipHeight < 0 then
-            originalHipHeight = 2
-        end
+        pcall(function()
+            LP:SetAttribute("Balloon", false)
+            char:SetAttribute("Balloon", false)
+        end)
 
         task.spawn(function()
-            local attempts = 0
-            while character and character.Parent and humanoid and humanoid.Health > 0 and myLockId == RS.lockId do
-                pcall(function()
-                    humanoid.HipHeight = 1e30
-                    humanoid.AutoRotate = true
-                    local root = character:FindFirstChild("HumanoidRootPart")
-                    if root then root.CanCollide = false end
-                    for _, part in ipairs(character:GetChildren()) do
-                        if part:IsA("BasePart") and part.Name ~= "HumanoidRootPart" then
-                            part.CanCollide = false
-                        end
-                    end
+            local cam = Workspace.CurrentCamera
+            local frozen = cam and cam.CFrame or CFrame.new()
+            local old_type = cam and cam.CameraType or Enum.CameraType.Custom
+
+            pcall(function()
+                cam.CameraType = Enum.CameraType.Scriptable
+                RunService:BindToRenderStep(CAM_BIND_INSTARESET, Enum.RenderPriority.Camera.Value + 1, function()
+                    if cam then cam.CFrame = frozen end
                 end)
+            end)
 
-                attempts = attempts + 1
-                if attempts >= 25 then break end
-                task.wait(0.05)
+            local added
+            pcall(function()
+                for _, obj in ipairs(char:GetDescendants()) do pcall(hide_locally, obj) end
+                added = char.DescendantAdded:Connect(function(obj) pcall(hide_locally, obj) end)
+            end)
+
+            local new_char
+            local respawned = LP.CharacterAdded:Connect(function(c) new_char = c end)
+
+            local function unlock()
+                pcall(function() hum.PlatformStand = false end)
+                pcall(function() hum.Sit = false end)
+                pcall(function() hum.AutoRotate = true end)
+            end
+            unlock()
+
+            for _, obj in ipairs(char:GetDescendants()) do
+                if obj:IsA("BasePart") then
+                    pcall(function() obj.Anchored = false end)
+                    pcall(function() obj.CanCollide = false end)
+                elseif obj.Name == "SeatWeld" then
+                    pcall(function() obj:Destroy() end)
+                end
             end
 
-            if character and character.Parent and humanoid then
-                pcall(function() humanoid.HipHeight = originalHipHeight end)
+            local started = os.clock()
+            local function alive_hrp()
+                if hrp and hrp.Parent then return hrp end
+                hrp = hum.RootPart or char:FindFirstChild("HumanoidRootPart")
+                if hrp and hrp.Parent then return hrp end
+                return nil
             end
 
-            if character and character.Parent and myLockId == RS.lockId then
-                pcall(function()
-                    humanoid.HipHeight = originalHipHeight
-                    humanoid.PlatformStand = false
-                    humanoid.AutoRotate = true
-                    local root = character:FindFirstChild("HumanoidRootPart")
-                    if root then root.CanCollide = true end
-                    for _, part in ipairs(character:GetChildren()) do
-                        if part:IsA("BasePart") and part.Name ~= "HumanoidRootPart" then
-                            part.CanCollide = true
-                        end
+            local fling_until = os.clock() + FLING_TIME
+            while not new_char and os.clock() < fling_until and hum.Parent do
+                unlock()
+                pcall(function() hum.HipHeight = 1e30 end)
+                local root = alive_hrp()
+                if root then
+                    pcall(function() root.Anchored = false end)
+                    pcall(function() root.AssemblyLinearVelocity = Vector3.new(0, FLING_POWER, 0) end)
+                    pcall(function() root.Velocity = Vector3.new(0, FLING_POWER, 0) end)
+                end
+                RunService.Heartbeat:Wait()
+            end
+
+            if USE_VOID and not new_char then
+                local floor = -500
+                pcall(function() floor = Workspace.FallenPartsDestroyHeight end)
+                local void_until = os.clock() + VOID_TIME
+                while not new_char and os.clock() < void_until do
+                    local root = alive_hrp()
+                    if not root then break end
+                    pcall(function() root.CFrame = CFrame.new(0, floor - 500, 0) end)
+                    pcall(function() root.AssemblyLinearVelocity = Vector3.new(0, -FLING_POWER, 0) end)
+                    RunService.Heartbeat:Wait()
+                end
+            end
+
+            while not new_char and os.clock() - started < RESET_TIMEOUT do
+                if hum.Parent then
+                    pcall(function() hum.Health = 0 end)
+                    pcall(function() hum:ChangeState(Enum.HumanoidStateType.Dead) end)
+                end
+                if char.Parent then pcall(function() char:BreakJoints() end) end
+                task.wait(0.1)
+            end
+
+            pcall(function() respawned:Disconnect() end)
+            if added then pcall(function() added:Disconnect() end) end
+            pcall(function() RunService:UnbindFromRenderStep(CAM_BIND_INSTARESET) end)
+
+            pcall(function()
+                if cam then
+                    cam.CameraType = (old_type == Enum.CameraType.Scriptable) and Enum.CameraType.Custom or old_type
+                    if new_char then
+                        local new_hum = new_char:FindFirstChildOfClass("Humanoid") or new_char:WaitForChild("Humanoid", 5)
+                        if new_hum then cam.CameraSubject = new_hum end
                     end
-                end)
-            end
+                end
+            end)
 
-            if myLockId == RS.lockId then
-                RS.cameraLocked = false
-                RS.lockedCFrame = nil
-                pcall(function()
-                    local cam = Workspace.CurrentCamera
-                    if cam then
-                        cam.CameraType = Enum.CameraType.Custom
-                        local newChar = LP.Character
-                        local newHum = newChar and newChar:FindFirstChildOfClass("Humanoid")
-                        if newHum then cam.CameraSubject = newHum end
-                    end
-                end)
-            end
-            RS.cooldown = false
+            resetting = false
+            isResettingFast = false
         end)
     end
 
     local function StopResetSequence()
-        RS.lockId = RS.lockId + 1
-        RS.cooldown = false
-        RS.cameraLocked = false
-        RS.lockedCFrame = nil
+        resetting = false
+        isResettingFast = false
+        pcall(function() RunService:UnbindFromRenderStep(CAM_BIND_INSTARESET) end)
         local char = LP.Character
         if char then
             FixFloating(char)
@@ -8847,6 +9046,8 @@ end)()
             end
         end)
     end
+
+    local ResetPlayer = performReset
 
     -- Fix floating auto (safety)
     task.spawn(function()
@@ -8881,10 +9082,14 @@ end)()
         end)
     end)
 
+    _G.performReset = performReset
+    _G.instantReset = performReset
     _G.ResetPlayer = ResetPlayer
     _G.coreResetPlayer = ResetPlayer
     _G.instaReset = ResetPlayer
     _G.coreInstaReset = ResetPlayer
+    _G.VampireInstaReset = performReset
+    _G._KiroInstantReset = performReset
     _G.StopResetSequence = StopResetSequence
     _G.KiroForceUnlock = StopResetSequence
 
@@ -9036,7 +9241,7 @@ end)()
         ["UP+TP"] = function()
             task.spawn(function()
                 if _G._KiroUpTpBusy then
-                    pcall(function() if showToast then showToast("UP+TP déjà en cours…", false) end end)
+                    pcall(function() if showToast then showToast("UP+TP déjà en cours&", false) end end)
                     return
                 end
                 _G._KiroUpTpBusy = true
@@ -9056,7 +9261,7 @@ end)()
                     local hum = char:FindFirstChildOfClass("Humanoid")
                     if not hrp or not hum then return end
 
-                    pcall(function() if showToast then showToast("UP+TP: UP…", true) end end)
+                    pcall(function() if showToast then showToast("UP+TP: UP&", true) end end)
 
                     local oldM = char:FindFirstChild("KiroUpTpMover")
                     if oldM then pcall(function() oldM:Destroy() end) end
@@ -9080,7 +9285,7 @@ end)()
                     if upConn then pcall(function() upConn:Disconnect() end) end
                     if not hrp or not hrp.Parent then return end
 
-                    pcall(function() if showToast then showToast("UP+TP: FLYING…", true) end end)
+                    pcall(function() if showToast then showToast("UP+TP: FLYING&", true) end end)
 
                     local function getCarpet()
                         local names = {}
@@ -9155,7 +9360,7 @@ end)()
                     end
                     task.wait(0.1)
 
-                    pcall(function() if showToast then showToast("UP+TP: POTION…", true) end end)
+                    pcall(function() if showToast then showToast("UP+TP: POTION&", true) end end)
                     local backpack = LP:FindFirstChild("Backpack")
                     local giantTool = nil
                     for _, name in ipairs({"Giant Potion", "Giant", "Grow Potion", "Super Grow"}) do
@@ -9223,11 +9428,11 @@ end)()
         end,
 
         ["Ragdoll tech"] = function()
-            -- RAGDOLL TECH v3: Giant Potion → ragdoll SELF (AdminPanel / remote / local)
+            -- RAGDOLL TECH v3: Giant Potion ’ ragdoll SELF (AdminPanel / remote / local)
             task.spawn(function()
                 if _G._KiroRagdollTechBusy then
                     pcall(function()
-                        if showToast then showToast("Ragdoll tech déjà en cours…", false) end
+                        if showToast then showToast("Ragdoll tech déjà en cours&", false) end
                     end)
                     return
                 end
@@ -9461,11 +9666,11 @@ end)()
         end,
 
         ["Ragdoll Tech Duel"] = function()
-            -- Giant Potion → equip Heatseeker → fire (Duel)
+            -- Giant Potion ’ equip Heatseeker ’ fire (Duel)
             task.spawn(function()
                 if _G._KiroRagdollTechDuelBusy then
                     pcall(function()
-                        if showToast then showToast("Ragdoll Tech Duel déjà en cours…", false) end
+                        if showToast then showToast("Ragdoll Tech Duel déjà en cours&", false) end
                     end)
                     return
                 end
@@ -9625,7 +9830,7 @@ end)()
                         -- Re-resolve after equip (tool may move)
                         tool = char:FindFirstChild(tool.Name) or tool
                         pcall(function()
-                            if showToast then showToast("Ragdoll Tech Duel: Heatseeker…", true) end
+                            if showToast then showToast("Ragdoll Tech Duel: Heatseeker&", true) end
                         end)
                         -- Fire several times for reliability
                         for _ = 1, 4 do
@@ -9639,7 +9844,7 @@ end)()
                     -- SEQUENCE
                     ----------------------------------------------------------------
                     pcall(function()
-                        if showToast then showToast("Ragdoll Tech Duel: Giant…", true) end
+                        if showToast then showToast("Ragdoll Tech Duel: Giant&", true) end
                     end)
                     drinkGiantPotion()
                     task.wait(0.15)
@@ -9909,7 +10114,7 @@ end)()
                 return b
             end
 
-            local minBtn = makeIconBtn("–", -42)
+            local minBtn = makeIconBtn("-", -42)
             local closeBtn = makeIconBtn("×", -22)
 
             local content = Instance.new("ScrollingFrame")
@@ -10095,7 +10300,7 @@ end)()
                     minBtn.Text = "+"
                 else
                     mainFrame.Size = originalSize
-                    minBtn.Text = "–"
+                    minBtn.Text = "-"
                 end
             end)
             minBtn.MouseButton1Click:Connect(function() end) -- ensure clickable
@@ -10400,7 +10605,7 @@ end)()
                 return b
             end
 
-            local minBtn = makeIconBtn("–", -42)
+            local minBtn = makeIconBtn("-", -42)
             local closeBtn = makeIconBtn("×", -22)
 
             local content = Instance.new("ScrollingFrame")
@@ -10586,7 +10791,7 @@ end)()
                     minBtn.Text = "+"
                 else
                     mainFrame.Size = originalSize
-                    minBtn.Text = "–"
+                    minBtn.Text = "-"
                 end
             end)
             minBtn.MouseButton1Click:Connect(function() end) -- ensure clickable
@@ -10669,7 +10874,7 @@ end)()
 
     _G.LeaveOnSteal = (function()
         local STEAL_KEYWORD = "you stole"
-        local STEAL_KICK_MSG = "Auto Kick On Steal .gg/kirohub"
+        local STEAL_KICK_MSG = "Auto Kick on steal"
         local player = game:GetService("Players").LocalPlayer
         local playerGui = player:WaitForChild("PlayerGui")
         local enabled = false
@@ -10689,7 +10894,7 @@ end)()
             if not enabled or kicked then return end
             kicked = true
             pcall(function()
-                if showToast then showToast("Leave on Steal: kicking…", true) end
+                if showToast then showToast("Leave on Steal: kicking&", true) end
             end)
             pcall(function()
                 player:Kick(STEAL_KICK_MSG)
@@ -11564,7 +11769,7 @@ end)()
         local _screenBalloonSeen = {}
         local function themePrimary()
             if Theme and typeof(Theme.c1) == "Color3" then return Theme.c1 end
-            return Color3.fromRGB(168, 85, 247)
+            return Color3.fromRGB(235, 45, 55)
         end
 
         local function findMyPlot()
@@ -12137,7 +12342,7 @@ end)()
             local ok = fireAdminCmdOn(targetPlayer, "balloon")
             if ok then
                 pcall(function()
-                    if showToast then showToast("Balloon → " .. (targetPlayer.Name or "?"), true) end
+                    if showToast then showToast("Balloon ’ " .. (targetPlayer.Name or "?"), true) end
                 end)
             end
             return ok
@@ -12148,18 +12353,18 @@ end)()
             local ok = fireAdminCmdOn(targetPlayer, "ragdoll")
             if ok then
                 pcall(function()
-                    if showToast then showToast("Ragdoll → " .. (targetPlayer.Name or "?"), true) end
+                    if showToast then showToast("Ragdoll ’ " .. (targetPlayer.Name or "?"), true) end
                 end)
             end
             return ok
         end
 
         -- Priorite STRICTE:
-        -- 1) Si balloon dispo → TOUJOURS balloon (priorite max)
-        -- 2) Sinon si ragdoll dispo → ragdoll
+        -- 1) Si balloon dispo ’ TOUJOURS balloon (priorite max)
+        -- 2) Sinon si ragdoll dispo ’ ragdoll
         -- 3) Seulement si les DEUX sont en CD:
-        --      - brainrot en main → Drop Brainrot puis Cap Laser
-        --      - sinon → Cap Laser seul
+        --      - brainrot en main ’ Drop Brainrot puis Cap Laser
+        --      - sinon ’ Cap Laser seul
         -- Cap Laser / Drop ne partent JAMAIS si une commande admin est dispo.
         local function respondToSteal(targetPlayer)
             if not targetPlayer then return false end
@@ -12177,8 +12382,8 @@ end)()
             end
 
             -- 3) Fallback outils UNIQUEMENT si balloon + ragdoll tous les deux en CD
-            --    Auto Drop ON  → Drop Brainrot (meme systeme) + Cap Laser
-            --    Auto Drop OFF → Cap Laser seul
+            --    Auto Drop ON  ’ Drop Brainrot (meme systeme) + Cap Laser
+            --    Auto Drop OFF ’ Cap Laser seul
             if isCmdOnCooldown("balloon") and isCmdOnCooldown("ragdoll") then
                 if state.autoDrop then
                     pcall(function()
@@ -12481,7 +12686,7 @@ end)()
 
             local fill = Instance.new("Frame")
             fill.Size = UDim2.new(1, 0, 1, 0)
-            fill.BackgroundColor3 = T.Primary or T.Green or Color3.fromRGB(147, 51, 234)
+            fill.BackgroundColor3 = T.Primary or T.Green or Color3.fromRGB(235, 45, 55)
             fill.BackgroundTransparency = 1
             fill.BorderSizePixel = 0
             fill.Parent = track
@@ -12626,18 +12831,50 @@ end)()
             end)
 
             local title = Lbl(titleBar, "Defense", 11, T.Text, Enum.Font.GothamBold)
-            title.Size = UDim2.new(1, -40, 1, 0)
+            title.Size = UDim2.new(1, -56, 1, 0)
             title.Position = UDim2.new(0, 10, 0, 0)
             title.TextYAlignment = Enum.TextYAlignment.Center
+
+            local closeBtn = Instance.new("TextButton")
+            closeBtn.Name = "CloseBtn"
+            closeBtn.Size = UDim2.new(0, 18, 0, 18)
+            closeBtn.Position = UDim2.new(1, -24, 0.5, -9)
+            closeBtn.BackgroundColor3 = T.BgDeep
+            closeBtn.Text = "×"
+            closeBtn.Font = Enum.Font.GothamBold
+            closeBtn.TextSize = 13
+            closeBtn.TextColor3 = T.TextDim
+            closeBtn.AutoButtonColor = false
+            closeBtn.ZIndex = 25
+            closeBtn.Active = true
+            closeBtn.Parent = titleBar
+            Corner(closeBtn, 8)
+            pcall(function() trackBgFrame(closeBtn, "BgDeep") end)
+            closeBtn.MouseEnter:Connect(function()
+                Tween(closeBtn, F, { BackgroundColor3 = Color3.fromRGB(215, 45, 55), TextColor3 = Color3.fromRGB(255, 255, 255) })
+            end)
+            closeBtn.MouseLeave:Connect(function()
+                Tween(closeBtn, F, { BackgroundColor3 = T.BgDeep, TextColor3 = T.TextDim })
+            end)
+            closeBtn.Activated:Connect(function()
+                if _G.DefensePanel and _G.DefensePanel.setVisible then
+                    _G.DefensePanel.setVisible(false)
+                end
+                pcall(function()
+                    if _G._KiroSetToggleUI then
+                        _G._KiroSetToggleUI("Defense Panel", false, true)
+                    end
+                end)
+            end)
 
             local minBtn = Instance.new("TextButton")
             minBtn.Name = "MinBtn"
             minBtn.Size = UDim2.new(0, 18, 0, 18)
-            minBtn.Position = UDim2.new(1, -24, 0.5, -9)
+            minBtn.Position = UDim2.new(1, -46, 0.5, -9)
             minBtn.BackgroundColor3 = T.BgDeep
-            minBtn.Text = "–"
+            minBtn.Text = "-"
             minBtn.Font = Enum.Font.GothamBold
-            minBtn.TextSize = 12
+            minBtn.TextSize = 13
             minBtn.TextColor3 = T.TextDim
             minBtn.AutoButtonColor = false
             minBtn.ZIndex = 25
@@ -12661,7 +12898,7 @@ end)()
                     minBtn.Text = "+"
                 else
                     mainFrame.Size = _defExpandedSize or UDim2.new(0, 210, 0, 178)
-                    minBtn.Text = "–"
+                    minBtn.Text = "-"
                 end
             end
             minBtn.Activated:Connect(toggleDefMinimize)
@@ -12787,7 +13024,7 @@ end)()
         local Workspace = game:GetService("Workspace")
 
         local THEME = {
-            primary = Color3.fromRGB(168, 85, 247),
+            primary = Color3.fromRGB(235, 45, 55),
             accent  = Color3.fromRGB(34, 197, 94),
             danger  = Color3.fromRGB(255, 80, 80),
             bg      = Color3.fromRGB(18, 16, 14),
@@ -12877,7 +13114,7 @@ end)()
             icon.Size = UDim2.new(0, 18, 0, 18)
             icon.Position = UDim2.new(0, 12, 0.5, -9)
             icon.BackgroundTransparency = 1
-            icon.Text = "⚠"
+            icon.Text = " "
             icon.TextColor3 = baseColor
             icon.Font = Enum.Font.GothamBold
             icon.TextSize = 14
@@ -12902,7 +13139,7 @@ end)()
             statusLabel.Size = UDim2.new(1, -80, 0, 14)
             statusLabel.Position = UDim2.new(0, 36, 0, 26)
             statusLabel.BackgroundTransparency = 1
-            statusLabel.Text = isOwn and "◆ yours" or "◈ threat"
+            statusLabel.Text = isOwn and "Æ yours" or "È threat"
             statusLabel.TextColor3 = isOwn and THEME.accent or THEME.danger
             statusLabel.Font = Enum.Font.GothamMedium
             statusLabel.TextSize = 10
@@ -13202,8 +13439,8 @@ end)()
 
                 if #intruders > 0 then
                     local plural = #intruders > 1 and "s" or ""
-                    lbl.Text = "🚨 " .. #intruders .. " Player" .. plural
-                        .. " in your Base! 🚨\n" .. table.concat(intruders, ", ")
+                    lbl.Text = "=¨ " .. #intruders .. " Player" .. plural
+                        .. " in your Base! =¨\n" .. table.concat(intruders, ", ")
                     lbl.Visible = true
                 else
                     lbl.Visible = false
@@ -13277,7 +13514,7 @@ end)()
             if _G.coreTheme and typeof(_G.coreTheme.primary) == "Color3" then
                 return _G.coreTheme.primary
             end
-            return Color3.fromRGB(168, 85, 247)
+            return Color3.fromRGB(235, 45, 55)
         end
 
         local function getPlayerFromClone(clone)
@@ -13532,7 +13769,7 @@ end)()
             if _G.coreTheme and typeof(_G.coreTheme.primary) == "Color3" then
                 return _G.coreTheme.primary
             end
-            return Color3.fromRGB(168, 85, 247)
+            return Color3.fromRGB(235, 45, 55)
         end
 
         local function createBaseESP(plot, mainPart)
@@ -13692,7 +13929,7 @@ end)()
             if _G.coreTheme and typeof(_G.coreTheme.primary) == "Color3" then
                 return _G.coreTheme.primary
             end
-            return Color3.fromRGB(168, 85, 247)
+            return Color3.fromRGB(235, 45, 55)
         end
 
         local function isValidStealPrompt(prompt)
@@ -14357,254 +14594,96 @@ end)()
         pcall(function() if _G.Unwalk and _G.Unwalk.set then _G.Unwalk.set(false) end end)
     end)
 
-    _G.PlayerESP = (function()
-        local Players = game:GetService("Players")
-        local LocalPlayer = Players.LocalPlayer
-        local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
+        _G.PlayerESP = (function()
+        local Players = (cloneref and cloneref(game:GetService("Players"))) or game:GetService("Players")
+        local RunService = (cloneref and cloneref(game:GetService("RunService"))) or game:GetService("RunService")
+        local UserInputService = (cloneref and cloneref(game:GetService("UserInputService"))) or game:GetService("UserInputService")
+        local LocalPlayer = Players.LocalPlayer or Players.PlayerAdded:Wait()
+        local guiParent = (gethui and gethui()) or game:GetService("CoreGui")
 
-        local M = { enabled = false }
-        local connections = {}
-        local espBillboards = {}
-        local espHighlights = {}
-        local refreshThread = nil
+        local isMobile = (isMobile ~= nil and isMobile) or (UserInputService and UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled) or false
 
-        local function themePrimary()
+        local ESPF = guiParent:FindFirstChild("KiroESP")
+        if ESPF then pcall(function() ESPF:Destroy() end) end
+        local okFolder, createdFolder = pcall(function()
+            local sg = Instance.new("ScreenGui")
+            sg.Name = "KiroESP"
+            sg.ResetOnSpawn = false
+            sg.IgnoreGuiInset = true
+            sg.Parent = guiParent
+            return sg
+        end)
+        if not okFolder or not createdFolder or not createdFolder.Parent then
+            createdFolder = Instance.new("ScreenGui")
+            createdFolder.Name = "KiroESP"
+            createdFolder.ResetOnSpawn = false
+            createdFolder.IgnoreGuiInset = true
+            createdFolder.Parent = LocalPlayer:WaitForChild("PlayerGui")
+        end
+        ESPF = createdFolder
+
+        local function getFlowSeq()
             if Theme and typeof(Theme.c1) == "Color3" then
-                return Theme.c1
+                local c = Theme.c1
+                return ColorSequence.new({
+                    ColorSequenceKeypoint.new(0, c),
+                    ColorSequenceKeypoint.new(0.5, Color3.new(math.min(1, c.R + 0.3), math.min(1, c.G + 0.3), math.min(1, c.B + 0.3))),
+                    ColorSequenceKeypoint.new(1, c)
+                })
             end
-            if _G.coreTheme and typeof(_G.coreTheme.primary) == "Color3" then
-                return _G.coreTheme.primary
-            end
-            return Color3.fromRGB(168, 85, 247)
+            return ColorSequence.new({
+                ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 205, 30)),
+                ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 235, 120)),
+                ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 205, 30))
+            })
         end
+        local _sharedFlowSeq = getFlowSeq()
 
-        local function cleanupCharacter(character)
-            if not character then return end
-            for _, v in ipairs(character:GetChildren()) do
-                if v:IsA("Highlight") and (v.Name == "ESP_VIOLET" or v.Name == "ESP_KIRO") then
-                    pcall(function() v:Destroy() end)
-                end
-            end
-            for key, bb in pairs(espBillboards) do
-                if bb and bb.Parent then
-                    local adornee = bb.Adornee
-                    if adornee and adornee:IsDescendantOf(character) then
-                        pcall(function() bb:Destroy() end)
-                        espBillboards[key] = nil
-                    end
-                end
-            end
-        end
-
-        local function getHeldTool(player)
-            local char = player.Character
-            if not char then return nil end
-            for _, obj in ipairs(char:GetChildren()) do
-                if obj:IsA("Tool") then
-                    return obj.Name
-                end
-            end
-            return nil
-        end
-
-        local function applyESP(player, character)
-            if not character then return end
-            if player == LocalPlayer then return end
-            if not M.enabled then return end
-
-            cleanupCharacter(character)
-
-            local themeP = themePrimary()
-            local hl = Instance.new("Highlight")
-            hl.Name = "ESP_KIRO"
-            hl.FillColor = themeP
-            hl.OutlineColor = Color3.new(themeP.R * 0.45, themeP.G * 0.45, themeP.B * 0.45)
-            hl.FillTransparency = 0.65
-            hl.OutlineTransparency = 0
-            hl.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
-            hl.Adornee = character
-            hl.Parent = character
-            table.insert(espHighlights, hl)
-
-            local hrp = character:FindFirstChild("HumanoidRootPart")
-                or character:FindFirstChild("UpperTorso")
-                or character:FindFirstChild("Torso")
-            if not hrp then return end
-
-            local bb = Instance.new("BillboardGui")
-            bb.Name = "ESP_NAME"
-            bb.Size = UDim2.new(0, 200, 0, 50)
-            bb.StudsOffset = Vector3.new(0, 3.5, 0)
-            bb.AlwaysOnTop = true
-            bb.Adornee = hrp
-            bb.Parent = PlayerGui
-            espBillboards[bb] = bb
-
-            local frame = Instance.new("Frame")
-            frame.Size = UDim2.new(1, 0, 1, 0)
-            frame.BackgroundTransparency = 1
-            frame.Parent = bb
-
-            local nameLbl = Instance.new("TextLabel")
-            nameLbl.Size = UDim2.new(1, 0, 0, 28)
-            nameLbl.BackgroundTransparency = 1
-            nameLbl.Text = player.DisplayName ~= player.Name
-                and (player.DisplayName .. " (@" .. player.Name .. ")")
-                or player.Name
-            nameLbl.Font = Enum.Font.GothamBlack
-            nameLbl.TextScaled = true
-            nameLbl.TextColor3 = themeP
-            nameLbl.TextStrokeTransparency = 0
-            nameLbl.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
-            nameLbl.Parent = frame
-
-            local toolLbl = Instance.new("TextLabel")
-            toolLbl.Size = UDim2.new(1, 0, 0, 20)
-            toolLbl.Position = UDim2.new(0, 0, 0, 28)
-            toolLbl.BackgroundTransparency = 1
-            toolLbl.Font = Enum.Font.GothamBlack
-            toolLbl.TextScaled = true
-            toolLbl.TextColor3 = Color3.new(
-                math.min(1, themeP.R * 1.15 + 0.1),
-                math.min(1, themeP.G * 1.15 + 0.1),
-                math.min(1, themeP.B * 1.15 + 0.1)
-            )
-            toolLbl.TextStrokeTransparency = 0
-            toolLbl.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
-            toolLbl.Text = getHeldTool(player) or ""
-            toolLbl.Parent = frame
-
-            task.spawn(function()
-                while character.Parent and M.enabled and bb.Parent do
-                    toolLbl.Text = getHeldTool(player) or ""
-                    task.wait(0.15)
-                end
-            end)
-        end
-
-        local function disableESP()
-            if refreshThread then
-                pcall(function() task.cancel(refreshThread) end)
-                refreshThread = nil
-            end
-            for _, c in ipairs(connections) do
-                pcall(function()
-                    if type(c) == "table" and c.Disconnect then
-                        c.Disconnect()
-                    elseif typeof(c) == "RBXScriptConnection" then
-                        c:Disconnect()
-                    end
+        local C_manager = {
+            cleanups = {},
+            alive = true,
+            connect = function(signal, fn)
+                local conn = signal:Connect(function(...)
+                    if _isShuttingDown and _isShuttingDown() then return end
+                    return fn(...)
                 end)
+                return conn
             end
-            connections = {}
+        }
 
-            for _, hl in ipairs(espHighlights) do
-                pcall(function() hl:Destroy() end)
-            end
-            espHighlights = {}
+        local REF = {
+            [18] = table.pack or function(...) return { n = select("#", ...), ... } end,
+            Fh = function(self, _) return (table.unpack or unpack)(_, 1, _.n) end
+        }
 
-            for _, bb in pairs(espBillboards) do
-                pcall(function() bb:Destroy() end)
-            end
-            espBillboards = {}
-        end
+        _G._FH_GAMMA_GEN = _G._FH_KIRO_GEN or 1
 
-        local function enableESP()
-            if not M.enabled then return end
-            disableESP()
+        local PROTO = {}
+        PROTO[14741]=function(t,_,_,_,_,_)return function(_,w)local w=_[1];local f=_[2];local C=_[3];local R=_[4];local E=_[5];return function()local _,S,H={enabled=false},setmetatable,{__mode="k"};local l=S({},H);local function S()for H,X in pairs(l)do if H.Parent then pcall(function()H.DisplayDistanceType=X;end);end;l[H]=nil;end;end;w.cleanups[#w.cleanups+1]=S;_.set=function(H)_.enabled=H and true or false;if not(_.enabled)then S();end;end;task.spawn(function()pcall(function()local S=f or function(f)return f;end;local f=S(game:GetService("Players"));local H,X,i=f.LocalPlayer or f.PlayerAdded:Wait(),C,"rbxassetid://95529031547606";local C,J=getcustomasset or getsynasset;if type(writefile)=="function"and type(C)=="function"then local P,g=pcall(function()writefile("Kiro_AP_icon.png","\137PNG\13\10\26\10\0\0\0\13IHDR\0\0\0\150\0\0\0\150\8\6\0\0\0<\1q\226\0\0\16\0IDATx\1\236\189\9\156fIU'zN\196\189\247\219s\207\218{\175j\176\27\148y\173\"\182\216\141\">\180\245=\149Fy8:<\20\29gD\240\137:<\197\154q\3dQZ\17ZY\20\25\181[pd|\160\178t3\178C\3\189\234\208\221\181Wefe\229\254\229\183\221\27q\222\255\196\247\221\204/\1792\171\178\182\238\254\13u\235\254o\196\1418q\226\196\137\19'\150\155\153e\232\242uY\3\151@\3\151\13\235\18(\2452K\162\203\134u\217\10.\137\6.\27\214%Q\235e\166\151\13\235\178\13\\\18\13\\6\172K\162\214\203L/\27\214\215\139\13<\193\237\188lXO\176\194\191^\170\187lX_/=\253\4\183\243\178a=\193\10\255z\169\238\178a}\189\244\244\19\220\206\203\134\245\4+\252<\171c\148;\23\128\252\201\189/\27\214\147\163\255\220H\242\218\243\247\13\195\253\251\247\243\185\0L\215\243A\210\19{_6\172K\175\239\245\157\172\239\180\127\1270\22\213\127x\239\23\227\174\187\2382\15=\244P\252\232\163\143&\159\249\204\209\226\11^\254\242\194m\175xE\241\21=\252\236\207\254li=\242\188\219n{E\2413\159\249L\241.\148W\158j\144\8O\171\3i\151\244\214\134]\210\10\2141\215\6n\21\235\138\134\215\173\150\237\167\11\5\159\164\135\202\177R\245=\247\220c?\252\225G\147/}\233K\165\23\189\232E\229\23\254\232O\13\223\127\255\177\221_z\240\200\181\159\255\234\227\251>\247\208\163\223\240\149\7\31{\206\211\190\241\219\190\223\197\149\151,f\246\167k\219\204\127\24\246\133W\13\249\232\23m\169\246K\182P{\13\199\165>\20\16/\188\198\150J\175\177\133\202/\13\140\249W\183$\254\249]-\250\137\251\30<\240\204[nyQ\249\2010\174'\210\176V\220\249\138\166\207\28\209N\201\145SJ\136\136\6B\251\247\11xvq\215]bt\164+\180\3\223\249\206wF\160\213\242\8\158\248\27\30$\134\28\219\31|\244\209kO\1568\241\180\137S\167\190e\207U\251\254\207\242\240\210+\218\174\240\234\14\215^\27\139{\243\1784\222%\198\253W\182\252\1\215q\31h:\247\23\205\180\245\142f'}s\167\157\254V\163\213\248\141V\171\249Zf\250U\17\254e\"\15\208k\208\162.\24q\133\144\166\255\178\16\253\167V\163\241\235\205f\235M\194\244\161\194P\225\181\207\255\193\31\219\241D\27\215\19eX0\128\253|\219m/\25\249\161\31\250wW}\21\163\243\171\255\242\248\190/\222\127\224\250\3\199\167\175?qj\241i\1'z!\222'ff\190ajj\246\153'O\206}\211\244\252\252M\19\167\22\190\245\243_~\2249\247|\238K7\127\249\193C\223\249\208c\199o\253\225\23\31\249\174\23\253\232\209\239\185\253%\199\190\247\153\207:\254\194\27\190\241\230\239\127\2507}\219\15T\134w\254\240\255\246\236\239\250\177\253\191\245\150o\190\233\166\155bt\194\19i`Z\151\25\28\28|\230\200\232\248[\134\203\149\187S\162\15DQ\242_\209\209\127\216\172/\255f\203e\255\201y\255\170N\150\190\132\217>?\203\252\183:/7\26\27?\1419\186Z<o\7\134\137M\205;_\182\214\150\153M\137\153JDR\236\135\17)*HX\211K\"\2p\185\211Ik.sWX\162_\1368\250\147\255\253\7~\236\25wa\138\237\233BeD\244\210\221O\132a\241;\191\244\165\232\182\23\253\219o\247q\252.g\228o\1895\127#\25\148m\229\3L\230\131\134\147\15FQ\252A\137\233o\141p\15\209\7\201\218\191\17\195w{\207\127\205L\127I\222\188\191\211\204\222\215L\27\127\214j\181\223\139\145\253\238\229N\235O\155\205\230\1594\154\205w\180\219\141?\198h}\187\23\186\195X~\203\149W_\249\218\155n\186y'=qW\222a\197\19\147'\191\183Z\171}\127R.?+\142\10\223\144frm\179\213\25O=\213\188\247%'\190\232\156\139!Z^&\15\145d\208/\1H3\204Bl\137\153\160\8d\"\141V\1\5\173\166\0256\30\244L\160\239\209\176)\"\255\5d\163\247\\\177\247Y\207{'\250\2\239z\179>.\21\208\128K\197:\240e]S|#\15\2530\137y\175s\217\247C\169\223\8<\195y\127\163s\254\6\"\254\6fz:\17=\157\153\159f\172\13`c\175\7\246z\241\215\137\247\215\146\2085^\4\163Y\174\"'WzGW\0{\196\211\238LhW\15;SO\219\173M\198\156\200\200\174\29\187\158s\226\212\204w\128w\4\\RE\130\191\222\162\143]\187v\1415\27\205[:\157N\197\154\136\208.\18\17\216\133G\175\227\149(\151EC\5\245.\141+z\175\129N\223W`\132XAd\152\2@\3\227\2104\5\10\6C\\\0192[&~\1501\230\157\218\23\186\184\167\238\197\221\224\226?/\165a1\22\169\209\142+\227\219\216\210\155\160\216k\224\194\13\140J\21\204\30\22\161\232k\1466\146\5\1632@<\139\248\188C\8SB\136\139vPH\247\228\17w$\220\143$N\12\12\152\245\178I4R.\23\127x\207\158\235\183\245\213s)\163\218\006382\242\204F\163~#*b\12\30\149[\197\225\200Z$\145\182+\0\137$p\175g\130\22\232\135\182\255l\200\233{t\168Kz\160\171\153\233\173T\216\246\242O}\234_\171\212\189T\230n\236\">/\149a\1335\149/\12\237h\167\237\215\16<J\175\179\9\134\197\0\193P\216\26\203\134\1533\151q\150e\24\127\167\181\17\185\172\137\236\153\240\15\131Q|OI]eY$+r\157\160\30\141\178\247\142k\181\1{\213\149W>g`t\240f$F\0\3\155\221\23\154\174\188\249\217\207~v\165\144\148n56\25\2052HM\16\144V/%\202\223\160\131<\186i\2163\14\178QD.s\155\210\245g\1761\196\220_S\200\213\4\213\221v\22\255\27\\\180?\247\209/}i\224R-\234M\168\242\18=\152\210\235H\184\127\141\163\141;cm\185\"\243P\137\153y#Ei\214\166\16/!ol||\188X*\255\200\216\216Uc!\225\210=\180Bq.\218IB7C\254\226FU\5\185 \27\3\154\15::\19\148\166\31\234\165\21\202G\161\241~(\175\156^\4\190\\\129\186\148\22`\2281\1489\194$\191\\\161\129W\222r\203\255qI\140\235\146\25\214\183\190\244\165\177dr\3lb\192\1635a\236\"\196\206\136r\228iH\222\252\22\136\168\216\128B{r\131\228\254$\190\250\186k\163B\185t\243\142+w>\231\214[o\181\200d\224R\220\140\29(6`\244\205`\190\151\225\\\17^\170\186\192\250,7\171\2147\164Q\153X\12\15a\197\247j[\171\252\252\205\183\253\219Z\143R\243z\209\11\11\208k\23\198`\131\210\172\238\181\212n\199l\236n\18J\136\187&\212}j\137M\27\173\153\167AG\161\162\155\145\151\245\180\21-\12\15\13\209\192\192\1926\239\221\143,/\211\165\244Zl\173\29`\145\239\18\162A\200\27\196\19\241$X\11*\160\7\10 \189\188>(\1883\226\10Zw!\205\160<\145\242P\239#+\188\148\159b]\9\188\130\23\158z\235\0\214p=\208\15*\27\2271HY\250\170\"\165?{\177\215\\\151\194\176\4\134%5\1313\24\239\190\193\139+\244\\2t\238\200\192g -\132\229r\129ld\160\172\174\210\176S\236\197W\215\18\130NQ\197\0241480@\149j\149\172a2,T,&+\244\236\29\250H\249\228@'\144\163mc\227|\221\213\215D\198\154\231J\236\158}\137\188\22\250\8\162\136\\\1/\240\173\232\208\24\187Rj\167\29\202/\236\216h\160Z\163j\181L\133BL\132)*\137-Y\140<\133:8\221\238\161\17\148C\141\170R*P1\177Dh\159\166\1317)\24\198\166\16\188\172B\192\187@\149\12921\171H(\134\192\27Ok\192xg5\175\140\227\136\135j\197\248\151v\237\26\249\201\163G\143\230\2117J\209\5]\230\130Jo\\8\8U)\12\212\134\134\6\174\25\29\0276c#\163\12\208\216\2000\13\15\15\209\216\216\24\194\17\26\172\13\172pP\3\234\135wh<\160\4yz\161PP\239C\213Z\149*\149\10\169\210\135\192O1\172\188\129\145\209Q\26\5\255\241m\163jT\132%\22]q\197\21\20\217h\187\165\232\7\27\214\14\18\17\211\197\191\208\251\246zC<\206\204\196\184t\147\162\178{]\227\136\132\26\225=\169V\131\236\149\"U\203E\26\26\172\5\140\12\13\144btx\144\20\170+\197\224@\149Jh\183\193`\"\\\202o\13\148w\15\30u\216\200\210\200\240\8m\219\182\141\202\168c\0\229\2511<\2\2549\134\7\25u\241`\181:\130\205\244kM\\\251A\221\201\163\154\11\190\205\5s\216\128\1<\22G\137\221\21\199\209\176v> @0\1322\188\140*TC\29\165:Zud\230X\1634(J\21733\2O%\148\213N\169b\212+\143b\177\136\17\26\7\148\161\252\0\208(\239R\161\8\143V\164R\18\211\222k\175\193\168/\196Y\150\222d\27n\28\204\180\151\149)\162\23\231\198\250\138\1411\5\182\2142\26\134\169\151t\167\187\194\157u\138\242\24\24\213`X\181J\153\186r\198T*\196T\129\252\253\168\22\146\144\15n\164F\165\198\217\15\245\136\138\\_\240\211\164\134\197l\168\134A7\8\131\173\161\14\213\187\234*\199@\169D9\170\229\18\6h\137\147b\204dq\218O\254wv\238\188\250\150\187VO\232\233|\175KbX/\197\194\189\144\20n0\198\14\166i*i\218\166.R\194\161!9\231B\136\19s\157?\214\200\238\224\242stC\191\134F\141)I\18\245@\20a\20\7\176]\225!\24\189\234\237tk\238\\J\237v\155v\239\222\197\213j\133\156\184QG\238*\0163p\209otr\22\25#\232\220\192\31\239kd\215\10\11qLI\20\1451\6 \178\196\1\6\166\174\131\139}\134\25/#\129\236\2=\229\198$Xk)h\221\229\185;\221\229\201\206e\228\189'\237\216\216F\0203S\132\204\28\130\252Ux\234\234\216\129\11\129\146\174N\157{\1957?\231\150\27\2139\160\152\166#8\247[\235?\247R\155\151\8\11wtf\12\225\2470IbY\24\160\28\1775\196P\146\134\1338\162\12\13\237\199\233\1721\2101\218=\214$\1Y\135\4Jw>E\167\161\19\192\139\201\211\134\16(\29J\174\213j\178c\199N\17\239k$t=\214Y\201\233\245\\X\202}\247\221'd)\195\192\241\6\6\175\220t\224h\168\157\13\157h\0202\0111\140?\7$D\186\14\158\12y\25^]\128\160\189\10\140B\10\0\149\222h\4\232\148>G\183\156H74\134\130\193\194i\162\158\236\172\232\0264\129\14\231\131\206qd\2057\194\24_\255\242\151\191|\231\133\24\23\196\160\139y\133\133{\165R\169\10\209\211\1379\239@\190\144J<:b\179\242\218\0C\30\217]h\\\129\222\9i6\178\186\230\224\171\175\185\154ac\5\151v\246FQT@\166\202\164@\244\226\220\150l\198\214\0103\163\243\5\246\224C\216\207];\178\255}}\\ \145\226\180t,\11d\3\232\20\168X\159\199\208\217\250\180-\190[\208\221*\156\252\"f\158\234\249\26\151Y\223\128\11|\135Z\208\165q\172\219\238kX\188\10\201\16\148\24#0\192{\226>\128\26U\250\21(m\23P\23\202\8<R?@\184\230\134\23\162\128\156\14\188\251\223\219\205\6\197\150\233\170+\247`$K\18'\201\245Y\22\215\192\4\182\15\255\133\200E\186E\140\184\200F\158\185kX\222\195\251\172c\238\161\161\181\1920\2243\1\26B\153ul(\231\145\167\235{\30\2397^M_\139\181uA\203\216;K\142P\0193\23\16\249\201\1648\240\131\183\221v\155\205\249\158Kx\177\13\139\212\1941\159_\1\213\142\244\4\209\14\236E/~\144+\237L\156-\2144{\246\236\209\29\"lZ\174\202\178\214\232\153\232\2073O\172z,\2115V\129w\2410\242\243\228uQ\139\229:\210p\11\140aS\4\240\176a\254\181\209\209\29\231\181\2222[\168\232\156H~\242'\127\18\135K\209\13^h\16\202]1*\143\229\164b\221\8!\129\223\239\199je*\154!\135\252\0\244\151\150\5O\148\145M\225\1361\250`\214(\23\248\194\27d\16fll\27'q\145lR\24rl\174A=Z\1\20\136\216E\186E(\179\28\11\161\173\206\0096(\217Y9\175o\207\233\5T\204\181\16\180\205\18\28\137\178\215#\153\30\212\144\211\212\195\155\25\1761\148eB\198\196d\196`\150`\"\208\159\173>\215\213s\254a\255:c\205\254\31\255\241\31\31S\135\1\166`\130\231\22n\179\5\154\173\146\172.\220I\212c\233\250J\5Ql\149\1999\211\233(T\156\169`\167\147\170\183\146\189{\247J\179\213\172\178\161\235\159\243\156\219U\1903\21;\215<\17kq\198\235=3\140;s\210\233`\163!\155\15\0029\143<\15#\138\1638\200\166\235\199\2\142)\250\17cC\164\153Y\230\176;t\26%\167q\148\131\145\132\247sx`V\229\231\217\184\240\146\159T\135\209-\184\165\254<7\195\2342\222\236\25\22\238T.\215\136\233F\226\238\194\253l\202[\207lSz\207$\128'C\253\208\180\0\140b\1\244lG\145\243a\230p\228\128\206`L\135\216\161\154\130w\178wd\164QD\221\170$\5\162\23\229\206\8b2\227!\18\234\245\190kXy\152\203\181\18j\2549 \138cx\194\0145\150\027491I\143?vp\13\142\31?N\245\2502\153\216R\\,\172\24\151\182N\235\212\176\31\178\174\238\190<F\28\144*\30\175\204\152o\232y-$\159\253\190\152\134\133\250\137\138>\26D\228JT\173\188\17E\236\28nm\2329\144o\137\212\26C\6\184\250\154k\240I\168\18;\231\2465\1552\128\194\210\3\130\11\191\193,\131=\9\1796\157(K\179\11g\186\142\195\131\15>@o\187\227m\186\150\165_\251\245_\163\215\191\254\245k\240\187\191\251\187\244\219\191\253[\244\167\127\250\167t\207=\247\208\204\204,a\195B\234\221\242#\143u,W^s\195\211>\232A7^8\236\161+-\219_\253\209\31\253\209\225\158q\157\181_\187\26Xa}a\17=\177u\228\175\245\222\15\3\24-~\13Cf&\230Uh\166\186\233.\4.[G7S\167\157\5:m\\\7\223\219pb\14^D\"\140\208#T\186.\148\135*D\189\148\"\1757\243\158\20\154\1674i\150bgx%\233\225j\28\199{\154ik\187\166\3\12\\\232\13\155\194\226D(\0033\31Y\27\248u;\18*\198\26'$\224\2250%1\131\10\241\173N\149\25\206\250\180\29\234\173\30|\224\193`0\7\15\29\164ex\166\217\1859\234\199\244\2444\0298p\128>\246\177\143\211\157\239\188\147\222\252\2307\129\254\19\212l4\169T*Q\134uW\218A/A\14\240[W\135\0\0\16\0IDAT\213/\27&\133\242\135H\200\239N\159\26W@\229\4\2\131\14\249\238\164T\253\222\173\238\18\13]\156\139\149\205\183|\203\183\196\152\169\158\6\239:\0A\243{\197\16\224)H\145b$k\8\2-\182\6\204L\232xrX\23h\6\16602\198\146*\193\1712D\130qi\249\28\1851i\168e\250\129\147\127\194\194'\240\171\214j\188}\251\14L%\237A\203f/>\195D\253\180\23\26\183\"\206\226\28K\249\132:\189#\17O\0302k(\8\29\140D\215?\26\1838\25w\1609\27\148Vy*\2128\194\215\1358\161\8\235)\3}\245\131\217\1445\0220\196\204\244\232\163\143\210\159\220\249'\244\238\247\188\155\22\22\22(\198\14Y\245dq\190\199\6\3\21:U\1892s\1607\8\181\190\28\222\139\238\164\0013$d\127\1778<\188\165\131S\163\194^\12\168\139\204\178,\129A\\\229}\166\211\13;\231\0O\14\194+ $>\237\164A\217\204L\198\24\194\178i\13\186\29\226I/m\156\210\196P\160.P\139\165\"\25(\132\12\7\30\168/\132\130\206\203\193\220U\16s\30\26\1443\169\199\2\15\185n\239up}\\\22\230\189\163\163\163\249\2\158\181\190\11\4\166\13\202L\207\176T\30\157\10=<\167\135\241d\1441C\8\25\208n&\239\213\201uk\20\24\220\153\160\29\159\137#\152(\190\139\22`\0281\25\219\237:c\208\190>Xc\136y\1819j\136\202\251\159\255\249S\244\190\247\189\143\22\235Kd`\\\234\193\164O\6\0079\21y\127`\27I\1\180zA\226\167\199\20\189\244\5/xA\161\151\186ZQ/!\15L\30\185\208\16\134%ss\173\193\163\199\142?\227\240\177\19\201\145c\199i#\156\152<I\19S\2114y\242\20M\157\154A\181*\130\161\188\145\214\24,L\151\233\238\187\239\166w\189\235]\244\30\140\180?\135B\254\234\175\255\138>\240\129\15\208\137\19St\252\248\4\29>z\156\14\0299\22B\141\2318z\252\4\245c~a\145\26\173\14\225\224\146J\197\"\239\222\185\11\211a\156\24\230\235\155\214\150!\128\222\208\153\6\23\6\137\188\131uy6j8\24P\190oZ\9\211\161\161\185\133%\180\255dW7G'\232\232\177\9:v|rS\204/\214\169\137]\173z=\29\156j$^\141\0\30]\13W\235\202\161\2103\175\237k\165W\239$0\236{\239\189\151\254\219\223\253\29MNM\210\244\236\\\208\159\234P\251\163\142\1692\23534\229\213\7e\170\156K\168\235ec\187v]\189\127\255~M\235#Y\27\213^]\155r\1o'\166g\135&\166\230vMO/\241\201\233%\154\152\156\163\201\233\133585\179DS'\231i\242\228,\205\204.\209\226B\157\218\1734\212\26<\16:\165\131\245\208\167>\2439\250\167\143\127\2k\133{\232C\127\247\247\244\215w\223E\127\5<\252\240\191t\141\235\1964F_\147N\205\212\215\224\196\196,\245c\226\212<-\183Z\228\164\171\135k\175\185J\127\\'j\183[{\221\2\233\2^\235\238fj\236\252\16\202\199\148\160\187\2013s\240\26\240\222$\136;x\164$)R\1502\29\1598I\135\143L\209\177\201\25::q*\132\26?>5K\25381=G\138\153\185%\1707 ?\214F\204L\133bL\14\6k\2411\208\232YV\159\188\232tRO\166\134\148\131\153\3ER(Q\177T\161\255\241\201O\210C\15=Da\128O\207\210\228)\21233G3\232\135\22\0128M\157\206*\212\206\210\0005fE\138)\28`/fO\154\241\203ny\209\139\206\248\27\214&\212z\17\30\247\220s\143\245\198\238KJ\149\161\202\192\0\13\141\140\242\200\2166\170\13\142v14L5\160\\\29\160b\165F\197r\133\10\1652zAE\128\199\234\243\25'O\158$]\180[\172\21\212\213\199\216b\23p^\163\138To\229@\171\188TQ\213\129!:\19\180\30'L\173V\1472(ghh\136*\1492:>\218\30\21\221\238\139\208\244\21\22\14\199X\240X\142\217\16\228F\192d\173%k\"t\150\163%\28\17\212\151;\161\205\229\202P\208\199\208\200\24)\6\135Gi\0\250Q\212\6\135\168Z\27\12 \182\228\201\144\26\167\136\0163\195\227&\152J\153\162\200\194\145!\0217m\241ZZ\170\211c\143\31$\237\7\213ayp\4\6W#\27\227h\2<\160*<7\188a\161\134\172I\10\157\150\191}\249\248\194\213\27R\245\18M/\188\144\0\21\18}ez:&\145}\197R\169Z*\149\165T.I\9\187\16\132\20\160\241\28\197bP\142\181Q\168\215\131\131\130\224\1734\225\208\225\195\212l4H\23\167j\\q\20\19:\138\160EZX\\$\172\141\240ay\152\202\149J\151w\185\180i\200\204aM\162|\213\131\12\14\14\210\149W^\137\179\204h\128\188\217w\251\237\183\199t\145.\235\"\207\198d\214\24\24\128\130\161\18\31\184\171\236\250\211\14j\220\9\22\222\181Z\141\20e\24\249**\161Me\12\186\28\22\235!\1316\8\1662\172Y\197\152\232$\179\249rd\205\215\176X<\5\230-f(\16/\204L\204Z\239\230\160\200\208\193C\135\130\\\149r\153t#\160\199\17\170_6\12v\202(\4\27>\212k-\213\235\219\231\151\234?\129S\231M\189\150\217\176\2449&\234|\187=-\23\133\232\218\200F\9\196c\204\255\220\210)\8\147\131v(\148\130E\188#f\228\130\191\195\130\222\195\165#z\218\173[\230\14\220r\4\165\170B-\22\236\198X(C\130\215Q\131\204\156\11\229ta{&XcB\185(\238N!\145M\248\138+\174\128\16R\202\188\2197M\148\128\17\222I\129\232y\221h:\1451\169\176\224\139R\31\1394\205\176q\200 wW^\195\134\212\3k\155\8W\138\211yE\150\166\228\178,@\245\"\240N\10k\0121\171\129\138\160\205\238\186k\175\249\226\13\215\239{E\187\157\253\152\176}%X\188\3\217\247\131\168\9\250p#m\211\219\26C'ON\209\227\143?J\22F\230\2106\145KQ\\\200\26\27\202\161\13!\204\31\130\181\23\24\171\30\217a}\7\226\130\203\220\15\239\170\238\220\149\211\172\15\205\250\132\243y\135aI\\\171\0139\2417\162\246\216C)\10cOg\159Bya-\133\17\200\204\164\222(\178\150\180\3\2085\212jvp\1687\183\"\134\133q\233b\213\163qp\2534\139\3\191\229\229:\148`\208>Fu\178\14\30\239\171PF\204\160\243]\216$\162\157{v\235\161a\204D\251hz\185\10\0265\12\5\162\231u\131\21Q\199\224\11\8\9\166Bf\131:\181M\204\150\152y\5a\128\161s\242\193\192\220\205[_\171@?\10=.1\208\163\26#\26\198\229j9\187\237\197?t\252\5/\184\249\129\165\249\137\0156\172\255\207\153\243?\141\188?!\166I\229#\1844\220\8QT \29\180G\142\28!\143\190\176\198\160\168`\3(d\16\207\203hK\24:W\163\234\166\153\16Xc(\197\160fc\182\15\12\14\254\240\13\155\236\16\187\212\161\200\133=\208\149c\237Vk\251\133q!\154\159\159\167\19\216\217\1692\153\2494v\200\23([4#\195(\215\240L\208\17\166\188\20\30\29\218\196\238G\207\178FGF,^\175\245\17\15\159\169\252\185\228\153\14cHu=\22\2506\200\24\202\203:5\175\127\15D[{di\22\197ilt0\223w\223}\217}\31\251\216\210\167\239\253\232\151\151}\251\183\152\205\239\18\243Q\229\180\166~M\232\193a\157\169\3y\14\7\171\13\172\249z\201!0\144\139\1\"\149W\17\146\131\225\129_\8\145\194L\4\167&\186P}\137\1577\163\144\5I\180\2302k\222\206\243\5\187\1408)\20n@\163\134E`\235bXP\149jVz#O\208\139\138\254*\4\221\192\12\194^\"\179\161v\187M\141f\131\146$!\135\17\213\203\"F\0303;\24\202\172\23\223\240(\1408\26\11\147\206\235\8\161 m\21:\234\2243H=\8\138\144\26\216\224\224 o\223\177\3\222\210\142\0099\253\252\164B(\242\234\206+\140\"\231\1378\131\156t\250\213U\181\202 AN\134\156\167S\157\158b\136Y[\16\150\2\220\233t\162,K\213\176ry\131\154\239\187\247^\236\143\211?\183\204o\143\172\153c\139r\128\182[\193\134)\128\13\169\14&''i\17\235\213\245\245\137\239\234.O\23\244Q\30_\31zc\175(\13\212n\217\185\193\207l\153\245\196\231\248\30~\162\225\248q\23K\150]#N\255\196N\224\160\141\13\145\173<\152U\201\221\"G\143\30\197\14\174\21\138\169\225\132\8\30h n\154\175V*\239b\162{3\231RM\6\206xk!\131\181\131\194\193\133\235\244T\173V\4\235,iw\210\154%\222\247\194\23\190\240\162,\224u*d\24?\234\20\132\4\251!\146~\21k\\qF\1457\204\212DaClbkmG\245\174\10\235\7\193{-\250\212\191\159\136?JD\153\202\129p\195;\197\0\158\157\155]\147\199\12\205\174IY}1ZS\239\2130+!\204\157\176\1r/\190\206UN\251mj\211\163=\223\160[]\149*q\18=]\196\23<\9\11\19\171R\5\145\245\140E2\18\204\22\"\221\162\196:\200\129\30\225\244\244\20\190\129-\0183S\5\187\163U:\198\142\200,\177\225O\22\139\165\175H\230Rp\192\141!FZ~3\16\161\12\214\21\29Rq\146$&l0xl\219\8G\137)x\177\251\136F\10D\196D\1t\190\23\1355\02291`e\13zVe\234r\11\158@E\237\190\174>5\237\12`\6\175Uj\198\21\225\202\251\173?\19\186P\194\230$\244\11\227\178Xoa\253d,\9\128r\164\136-S\4\249tIp\234\212)J03h)\133\230k\168\240p\190\14`\213-\228\243\2260P\186U\228t\218\201\134\2537\183\27\173+\180L?r\1\251\211\206%\30FN\209\250\193,\243\251D\196\158K\225\156\22\229B\163u\26\212\29a\132\29\1566L\207\178\148\6\249\234\159\153\132\150Z\157\236\136\243\217\2\210C2B\220\218\140U\176\24\234\130\200pW\25 B\29&x\195\12\235\140]\187v\211\224\208P\130\244}m\219\169!TB\5\162\231w[\24\22\1407C\233\192G\215t\14ui\1364R\3\215\240B\0EXxF\222\140\7N\215][\178\251\188\161/A\22\215\167\164\149\"\204L*K\27\235\205\12\187V/\18\222W\8\16\2094Q\239\1288\233\224G\200\0\206|\200\19285\13\165\212\182\6\161\228\219n\186\233\182bo\173\21\200\140\210^\8\148Y\165:\188\7GM\163Q\28\245\177\2kt0\236\\\253\19\9\132\15 \1311\128<P\234;\193\161\234\1\166a\166&\214VGt\225\30i\127c\22\241\2*\130A0\26c\133-\159`\159\206e\157\244\144'i0\163\13\30\15\31B\"\13\29\163\205\171 \200@\184\160d<)|kcf\28\193\140\243\224\224\0\219\200\\\197Y{4d\158\255C\5e,~T\226p\174\160mS/\149\233qK\239X\133\153I\141,\0\211\178\131GP\185\206\4\21\137\217\16\27-\171\148dp\177\166o\0\149\131|\189>g\132>\205\134\155Xk\9J\0093\19\243*\140\177\180\140\179B\29\204*+3\175\244\145\14j\233\25\149H`\185R\149\202n\140!\128E<g\226K^\252\0154\171~\224\134\27n\224\156\208\228\145\243\13_\250\210\151\198\226\253\13V\236\144\8f\1Zu\255\202\211\172\149K\147N\131@xf\238.\220\151\151\131\2ld\201X\19\226\189\2\25\11\29\153od\13\159f\143\"\190`\133\180!\210\203\15\129\9\207\141\31\"\30[e\140y\212W\196\7\237\221{\174\160N\187=\236\188\\\139\131R-\170\2526.\188\133Tk\173\136\248\21\143\5\11\135!e\161\195\244\215\231\13F:Cpf\166\240~\22\229\128\180\191V\214\23<\"k`e\250\178\9>\251\217\207\226p\138\239'\225y\17\181)F\177Ubf&c\12\6r\157\178\172M*\0063\0079A\143\1\186\182\15\169w\169\162\29\250\215\128\150\185G\239\160O\231\175J<]\251\200#\143(I\160Ve\134\200y<t\26d\231\134\146\4\163\190X0I))p\196`\137\29 \158\216u\233\147 \184_ao\152(2Dz.S\192g\26\253}\195\172\221\162\8\211\223\145\195G\168\213\\\14\249\214\152|\254\23(A\231\216\148\152\143\150S\219I\6*M\231\178\134\26^\132\222\138\1924\7\138\209*\12Uq\186\156\181\177\190\130w xK\129Oiw2]\191\201\142\237\219\161GW\19rXg\133\131\210\0219\207'\210\194T\24\199Qh,\214Aa\160\8\169\157y\196\155\240\1501\228)\162]\17\165YgM\21jD\235\161\4\133\200\134\223 7h\163\168\239g6\154~\22\136\247\238\176%\158T\158\228e\181\195a\16\6\208\242\179\248\16\13\154\192\191\140o\137\154\230\224]\161\20\140\9\1\24\134\231\3\160o\202tZ\135\30\163BB\213j\149\244\203J!I\168\144\20k\165\168\244\130k\159\243C%\234^[\18\178Kz\2503\252(r\139[\3\240\137\207\168T\7\146\237\219\198h\160V\225\1|\166\24\172V\169Z\171\208\248\232\8\141\143\173b\20\239\219F\199h\12\223\198F\134\176\169\232\1819\195\153\212\28\206\176pF\181R\147\199t\17Y\12s\164\8fJ\4\135\172=\149e\179\157e\17\127\180Z\169\249\161\161\1\1\240\137g0`tt\24\159|\134il|$\160Z-S\130\1983s\191~\9\138\231={v\243\200\232pb\136\2475\26\141\"\248s\15\8\206\253\182m\248Pb\181$\201Kw\251\212\147\26\6\163\151U>m\247\240@\141\6\6\1704:<\180\6\219\199G\169\31\144\143\162\168\235\205\161\15\129Q\216\12\31\141r\254\27\132\1304\150\200\205\11\203\163DA\30\218\236\26\192w\221\225\225\17\212\1\19CI\245^\132\1Hb6+\130\182\24\26\29\25\165\225\145\17\174V\202<P.\21\7\170\181\239\190\174Z\169\232\210H\11n^Zs\207\12\214l\159\182\0061\146\174\172\20\139f\176Z\11V\\\194\183\192b\169@\229B\145\202\197\8a\178\138b\210\29!\8-\161%85\136\12aJj\210\169\169Ir0&fV\214\196\140\12b\1292\25^k\25\157s\228#\207~v\186T\168/\14\13V\30)\151\163N\169\20\161\206Hz\161\198\187\192\168*\1\0303\147\247i\24m\212\187\180\179\245\216a\247\158=dm\28\195h\207\253G\149{\188\250\131N\146\169\183R\195ZIvXc\9\6\15\179\144\181\134\6\7\7\241\141\176B\149Z\137\202\229\152\138\5K\229\4(\25*\3\165\162\161UD\20\195\236;\248\236\227\\F\198\218\21\190g\136\176\230-8\215\128\222\14D\150Sk\12!.\214\168>5\151\244=D\226$\130Q1<h\27\186OC\154>t\185\170\128n\196\163\191\206\0\0\16\0IDATH\161i9,\250\167Z.\210 \6m\25\253[,FR,\242\181\133\26o\135a\161S\193?'>\159\240\174\187\2382\150h\175a3\226\189\23,\250\224\188\28X\249\21`\13\19\140\166\211n\134\176\141\5z\167\211\198\238l9,\30=\148\14b\234z\1729bf}]\1\227\210\23&\158%q\147\180\127\191\223\182{\183K\146\194<9\239\210\172-\0\142\19Z\1m\212\163h\181\235XC,#\173C\186\128V\30P.\214\17\30\16|BJ)\194G\240\177\1771\188\211\158$)nS\26\128\129\243\186m\211\10\17\22r\24\0129\3\159O-\204d\140!6=\246\176AI\29>\211\181C\167\234r@\209n,S\142&\150\5\1384\237\16\138\6\02913\216\228Lh\163\0112`gc-\214\213\164\167\240m\148\209\180@\139\226!\204\31\186xO\179\20zRtH\141\137H\251/\167X\27\230\187l\27E\20\214\137\0240\198\8\216\250\138\141\248\217\250?b\192\184\216\172-\182\229\183\160\157={\246$\222\240\211\28\249\170\30\184SD\162\149\17\163\243\224%\188\211u\196\233B\234\\\237\176\14c\14lH\141\171\209l\134O9\204L\6\128\164\164\23F\187\24c=\26t4\147hQ\211\238\251\251\191\207\166ON\30owZ-\193\156/.c\31<\147:\11\173\175\11\149%B\11u\29\199\232`\2\148\30\6\0096\234=\134y\207\174+\160t\30\172\187\198\222W\188\226\21\0172\206\251\182\182\137\246\155,R\165\163\13)\166we\198\140vzL\197\240^^\229\197`B\187\8}\162\217\1\30]\177\30!\3\15c\186e\149^\196\24]\155\"\249\140\247c\31\249H\198\226\143\163*\2538\205z\229\5\130Q\192x\12\160\186\176d(V\23A\20\188V\10=9\204\28.\19\12\147.\1560\169\204\154\238\131!v083\130\222Y!.+\225\229\230\2414-\235\238\208\128\215y\221j\149\174Z-\146\208^0H\0h\143\20\136v;\246L\150\15\162p\171\176\134\153\230u}\5\129\1731\196\12\152\30+PA9)l\245p\193-6\240\170\155\134\212\139\127\164P*\224<\11=F\144\2\25\167\223*\199j\170\214\165\240`\168! :\29&Q\161\\\136\226}\135\154\205u\237X-\187\149\152\197\174\16\14684\7\198\218-amD\204\221NA}\221D<\213H\16\156\207\205\134yU9\27s\208\2501t\2054*o)\9\234\2144\141\6\3\209H\181R%5R8~\216\196Z]i\2549\129\195o\234\2224(\165\242\248\2488\155s*\220G\12\195\146\1I\134\144t#\17't\158\151\215\230c\237p\242\228IL\143-2\214\18\155\158\222\208\31\198\0261\150R\138\204\145\229\229eu\129\152\13\247\243H\169\188\216Z^\247\21\245\220e`|\218al2\18f\179\1833?_\234\177X\233\132\222\251\150\130F\20\0091g\204=\249Q\138\217\162#\25\16\188]\200\173]e\8\172W\153o\206.\208x\177\139\214\154\166\177\150\140\237\"/b\141\161!l\28\138\197\4F\149A>x{\140\222<_\135k?\242\244\213P\13Q\209MA\235\244e\156\18\30\255\228'?\233M7\249\252\158\222\198c\24\9\186g\135`p\153\17896\171A\188@YL\243ss\152\231\131\221\172\1442.\240\199\224\230\6V.\1351\186\210<si\169\209\232\180;\19x\23\224\188\239j\173J\149J\5\159\143\253\190Rf\7\193H\249\133\142A|\171w\160/\180\219X\3\232\153\0\20\209+\9\249{\177n\160\222R\161\233\138n\234\150\158*\23\0081'\225\185\149;\193\170\22\133\150\160\198pk\25\129\"U\231\26\175V*0\184\174\9\232\210$O\215\188s\5\20\192@\145\153o\188\229\150[`\182\231\202\161G\127\215]\15\197\222\203\141\1964\140$\200O\224\139\216&\183@\215\253\200\201\24\222iii\137\142\227\196\29B\133d\13\21\160\23\13\13s\0298\172\159+\2\1\30i\186\184\16[\2510\150\2\176\198\174r\144L\186\6\232G\6\130~\128'\129W\24\8\186p\173V\1718v\184\2\14\209\236\232\248t\151\2428\127\12\145\177FGn8\226p.\195\249U{\13;\198@2\170\1735\169\155\191`T\145\"\167\128\26\137\13\159Q\2159m\22\197\30\210\180P'\154\173%\13708)\138#\181~\138\139\00520\1d\18s\151\165\26W?\0286\25]d\2282x6\200\175\249\170q\133\150\5\1800\11S\145\196|Sgd\164\160y\185\28[\13u\141\195\131Os1\184]\139\1PR\198\128\222\132\199\150\2241\5*\180aM,\220u*Lp\222\180\161\16B\211\1538\2531\220\149l\148s\226\253\140\247\153C\157\"\18\158+\249\155E\212[(\164\167 \156\147\201\224\224\1280\155\1\155\20\174\199\9|\188Y\217\179\165GQ\29|x\141\217@\170P\204\195\192\181N}\209\180\28\30\139\249s\1\150\147P\187r9#\130\12Q\2300\155q\202\188*Sh;lL\13lhh\184\219W\208\133\218\170\1603\207\200\181/S\219\210\15m\1318_\192z\237\1982sr>\134\21\132\0304\166J\196\223\128\134&\212\189\182\210`\234\23F\227\25vN\2349\20\186\139\130\193\16\20\17\160q\176vBr\196\166RG<\212\161\235\187\251\238\187/[j,Oy\145\182\242\17(K\1\154s\190u\157U(\22\138\134d\239\2444i{\180\30\1979\241\138q$\6\133f\132\237(\235\218\202\27Q\133\7@>(\2534~\130\206\220\18\8\222B!\178e\185,6\19\140\237\180\2341\135\10 \"T,\22i\199\142\237\164qMc\134\228\136\200:y\212$\21\200\234\222\186\14St\223P\222\247\3]%W\196\13>/\195R\143%\236\162A/~/vA\22u\172m\172@\200~\128@o5\128\16\246\9\175#G\127\162\161\213j\146n\2115_!\1844d\14#\238\240\242\178k\234{\14\24\23&\195\133\1351J\22\208a\236`~\10\234\175W\227y\129M\1944\203x\251\246\237T*\149\19\12\240}\229\2422\6\12Z\133\17\179I\1453&\163\207\194T\152\19AGA\241\222k\7\1321\25\178\180y\"Y\136\235\195k\193\179\192\1855\172\181\216f\8\253\145Zk\136\177[\147Uc\236\214+aJ\28\30\30\129lBl\2\249f\1886L\151^\31\230\153\185\252N|\209\23]d\242\140s\9\209\169\24\147r\21\137\27\21\231\16\164$8\163\201\240M.\195\156\172H\161\132\245\200DH\211\0281\230xF\\\136\172\165\19\147\19\212\193\217\137\170\141\153\137\185\11\131\1477\204\239\29&:25\144b-\21:|E\212\218\208\240,\140\177!\224k\152\161\159\136<\155\30o\143\205@F\25\220\188\23\236\202\8\254\168\15\132\184\"\2032\29\189\188m\219v\203\196\21552\171;]\173\131\245q.X\\\140\197X\18\136\130\239\163D\173\6NG\0288`B\210u\149%\166N\218\162\12\231{\14\222\199\145P\222!\4y\12GdML\26\1380A%!\30\222\193C\219\201LH\211'\248\158\229.\136\139H\\\0093!\163n\244\25\17\188*A\175t\213UWk\187I\219\175p\168,\200\2J\223\3\145\13\134\167\245\130\15)\28\6\176\246\175\202\174P\221*T\198\0\138S\211\170\1769\139l\27fc\213\159\136\163\27\188\243\131\196^ \19,\132\224q\10d\13\20\131\5!\179!\206A\17\177\2\239\202\16\229H\189W\132\15\207\205f#\252M\1M\183\214h\16\192\184\208 .WK\203\216\177\28~\236#\213,d\160y\189\144\210z\179Y_\170O'X\155y|\24\211t\20#\133\197!\165Mb\2\15R\165)4\190\17\202\1652m\219\182\141\210\204\143\150\172\189R\7\142\242:W\196\241\1620\233q\3,f]a\149I\161\30Z\195\\\14X\9\145\137\0\131AA\24\20B\232;0\128.\140%8:\210\206TvZN\195\173\"5\1560Q\13F\138\234$\244\145~\30\"2\180s\231.\170\148\171$\161O\12\25V\25\128u\204=\247%\244f\0fK\130\140\12\7\168\0222*8\\:6\185\153%\206C\250\190\130g\143\2344\200\165R)\241,\215\128wBlY\224.:\153\167:>A\232O%N\207\204\133\223\1809\133\175\231+\152\155!\141/c\202[\\\174\147\134\29\28\1366\150[t\234\212\28\25\140\14\6\192\138\20h\143\178\197\134\185\179$\222\224\211\196\221\234\208\130r\8\151v\254\196\196\220\194\201\217S\15\159<5\221\153\158\153\161\1473\167h\230\212,\205\205\206\211\252\220\2-\204/R\7\30)\243\158<\244\154a\4\184u\240\2003\214\200\238\221\187\165PLjl\237\190\207\127~&F\21\231y\0272\208*\132\15\134\1463\241lH\184\219!\141f\27\178-\145\254\250\2524t5\13\153s\204\206/\208\252R\157\22\151\155\1M\204\2),M;SA\208N\206\243\12a\208\19j\27\"\142\224\177\152\24u\231\24\223\182\131\182o\219E\179AGKTo\180\168\141\25G\249\137xR\144~\201\232M\213\158\137<\25\10\161z`5B\188g\169\11}\170\253\10\200\244\236\140\204/,M\206-\212;P\129\178\219:\208\161bLe\144\153\158\1\1926=E6!\29\9\19S\211t\228\216\9:z\252X\192\177c\199h\5GO\244\226'\232\240\225\195\164?\219>19I\13\236\8\23\22\230\131\0\198\218\16\246?\162(\158p\228\230zihb/\22\130\185t~~q\234\177\131\135\178\163\199N\200\145\163\199\229\208\145#\164\127\199\225\216\137I:11A\186~\171\2278#\133\129\9\140K=e?\212{\186,c|\173\231\161\193\193\"\244\181\143h\182\0\246Z\151\2\209\173\223\204\232\153u\228\12\163\210$\237\156\227\19\147t\240\240qz\236\224\17:p\232\24\29T\28>B\7{x\236\241\131\244\248\129\195\200;\28\210&O\158\10\191\244\208\238`\226\17F\167\139\178:\27 \247\237\198\26\187\19}Tf\8\5`\201m\200\129\199\142\29;\169\209n\211\161#G\129cX\138L\209,\6\161\254\253\134\176F\221\148\187!\19%\240\236i\24\196\208;d\4\143C=\28<\154\206\204\204\252\207&-\181\206\217\176\180N\137x\4\205\219\1418[L}\153\203hzf\150\166O\206P\171\211&\27\23\20\148`\138\137\146\"\5\20\146\0162Y\138#\244\155\24J@wbr\138Ti:\26\8\23sD]\24bc\225d\220anK\190#D\181 \"\10?\178\131\157\164#\147\156*\150jiT(\18\217\8g3%\210\250\5#T\8\138\132'\1415\221X2\204\196f-bL\151\153s4<2L\181\218@\"\158\175\183\182SC-Z\151\2\209\173\222\227J\168c\26m`|4\206\208\145\2OE\196h\247\204\236\12MM\207\208\220\194\"\228\136\169P,S\1\211Q?Tgq\177D1\244f0\157\167\144-\195\186#\133\7\201\224]i\139\215\173\183N\199\25\241\21D\\.\20\10d\177c\213\190\185\238\218}\180\239iO\15\245c\249@\12\221tRO)\214\196\22\14Bu\145\193{9\212\219E\138\1698E\190\11\208\31\23\159_X\160\147S\167h~a\137:(G\198\138\137bI\10\197N\177\\9Rm\238I\13\157\227\21\254FCf \25\141hQ\143\158\200T0\192C}\195\163\2274<<\26\254.Am`\136\6\7\135iph\144\0065\28\28$\253\249\159\161\161\17\132C\164k\27\253\21\164\12\134i\204\170(\240,\194\24e$\148\1781G\172\197|\169\149\17*\160\213\235\149\175|e'.\20\30)U\6\22F\199\183\241\142]{hhd\148\134F\135\187\128\177\20\177\173\142b\24\171\26\20\243j\225\190\152\174\209j\181\26\237\218\181\155\189\151\1712\172\181\232<\174$Y\1283d\129\220]\249\193\3m\193\147\8\19\0126\18\4O\209\161(\142\131~\134\160\135 \239\2008\13\5@\246\1451\196\1613\200>\2=\170\145%\133\18\153\158~D6nC\168\164\251P\2\142\162\241Bd\162\235t\252v\\\198\141v\11\7\193{\232\25\223\244L\26\221\182\29u\140\210\224\2406\170\13\143Se`\144B\29\17\214\164\164\253\0\160`\151\221\218\167\137,>>\187\208\142R\169J;\182\239\164\209\241q\240\28\231\161\209\145\249b\185\240\200\23\190\240\254s2,\21\152\234\181Z\130\186\247\193'W\1604A\139\197\137\192\1703\130V\225\141\18b\219\21LT\9\198\18\18\136B\199Z\242l\240\26!$j\165\25\214W3\2280Bb(\155\214_,\24d\173\195\199\6\7Sd\169\247P \186z\179\177S\198\196\203\169\19j\131\31\28T\232\192<\212Nd\230\213\2\27\196R\156\165u:\29\30\168\2130\205\2430\199t!?\170\236X\219\220\171'\131\183\129\219%\7o#\226\161\159\152J\149\26\21\146\18<\128`\239\195\196\174\7\207D\26G\200\128\234\207\26\232\11:\139l\2\142\6\216\218\29\15$\181\168\152<-J\226\196\137\16\206\234\232\155\191\245\219h\219\248\14\1942\19\187A\161\184P$\178\232\11cI@\227\213\251\172c\0151B_\245'gh\135:\147\2\218`\"\200\133\242\234\253\208\5\19\237e9\164\180[\151\148\194\244\195U\1622\164x\26\140H\167\13n\183RN\177\136\19\157zP\1\193\162\25\202P\230\14\130\170\192\"L\2269,\160Ux/\130\198\185\176.\203=\22\145!'>4\130q\161\28c\236/\163\241\135\31\185\251\238L\249m\8\235[\"nN\249\26\212\171a\14\237LR\185\192{\195\178HTw\159\193 \25\181m\219\190\141\170\3\3U\27%Xg\0174\6\2Z\235%\233,\151\242\233'\129\158\8m!\31\218\236C\155\0133Yk\208\185\1580\227\144\202\25\224\136<z]\245\182\2\24$3\147A\219\180\28\225Jq\150\142`\253\205HP  \233\136\191\162\185\220\188\14\252y\223\190\167\241s\191\243V\186\230\218k\137-\6:(\140\1)x\187\14\198,\136\144D\172i\26\233\135z.EO\135\170[\230.\15\2=<<\132\6/\231;\236\233\1716k\204h\241s1,\221\17J\161S\0262\194O'\130\169\131C\12A\13sP\24^\177\174p\24\137\30\179\129#6\2E\245\160\138\133\129\169\240\170\232(\142\169\137\133\2514\214\28\198DA\249D\134T\129d!\22\142\216$\182\11\145\229\19\224+\192i76\18<7\179\180\216j\180\31\137m\1462\140\151\161\132\28\202\15R\16\22\0DlC\29\30;Q\143\129\224\224%\21V\229G}\214\24\30\26\26\226\24\243\"3\239m4\226\"\0171\157\195U(\20\224\241\208h\148\137cK)\234\10\6\163\29\8\131\241\8\2170\9:R\13\7\251iP\2505`F\219\145\162:B@\144\5:td\172\213W}\183\205\230|\158\1318*\0\0\16\0IDATn\244\154\1662j\223\4h\194\15\254\224\255]\173\150k\183\236\190\226\202\237\223\243\130\239\163oy\246\183\203\232\21685\177#W\190\10\173\191\131\245p1\137(FW\170\30\"\212\161y+\240\210\245\168\208\235J\26\250Q\144\238\224\4\28A.Bs:\153 \173Q0\242\21c\150pxG\232I\149\228\28\224\216\239q\"\227\162\21\0\231P4\144B\0R\232K\189^'\151eX\196'\1700\138\176X5\204\196\16\214\226p\20*>\214q\180\8Z$\225I\154\181\2\210k,\25lc\29u\156D\178NG\127\135\149D\211\3`d:%2\20g\140\133\151\212N\0129x\128;\25\20\235\178V\3\128MQ\173ZI\188\184}mN\243\5<h\183~\195\241e\132\199\214K\156\153R\160cfC\170\23\1438\166m;?WO\242R\183\223~\151y\207{\222S\2487\207\127~\229\223|\251\243w\252\229\223}\244Y\207\250\206g\255\212\179\191\229\217\255\215\173\223\245\252\202\213W_\203\197B\141[mx&\234\1829/\171\161`V\129b\8U\16\235C\19W\144\235G\203\173$\18\172\141<\190nS\247b\3\225\1725S\156$_\252\190\239\251\190\14\6<4\223\205\220\210\243\195\31\254pb\153o\132\222\134P\160\215\129\232,\6\144\208\1895\174\160p\250\220M[}\170\162\244\13\178\208\252\252|\248\250\207\6\163\24J\211\244\28xM\137\233`\211/\215!h\248\25,\132aT\230\161\210\206\207\187l\177\217\152i\167\157L\141G\211\250!\234%\152i\163:\148\206\193s\137W\175\234\177\238)\208\224\224\16Y\27\237)\23\138\219\232|.(\135\153\207\167\228\134e$\151\159\153=\140\0JO\146Br\245?}\242+{?\250\201/=\227\165\255\247\246\239\29\217\185\247g\170.y\237\240\224\224;\163\164\252\151\163\163c\175\27\27\31\187\177R\173\154\20\222\17\186\193\140\130\221\29\198\28\156OXn\168q(\188O1\184$\244\1491\235\12\168'\145\246Y\215\15\247\18\16\228\239\240Z\226\"\202L\20\221g\">\130,\189\183lX\161C\177\163K\132\228\26\241\146\1602\6\148\201\10\244]G\149V\170\208\12M\235\135\199\148\160\233\138\198\2422\233\26\167\1413\149\12\158K\145f\25\6\145\23\239]\2342w\252Y\207z\22\221t\219m\197k\159\243\156\210\181\215^[\162\241\27\202\2277\220P\190\226\223<\191\162\160\17*DN\142@;uL?\144\9G\183p\211\210\131N?\214\24\178\198`-\227@\134\22\192\133\11\22\213\10\215S\172\4\227r\\\173Uu\194\30tig\239M\231\248\163\202\167N\21Q-\163<\134\1336p\11@\1\200\132\165CO\222\211\223\209\233\214\16\236J\233\2160o\27\25\30\249]\27\241\223\226\168\228o0\16\238\28\30\26\254/\152\194\127\1\181\190\176X(^\239S?\216\1938\19X\145\2346I\18\138\139\5\148G\219a\168\178\6H\19\31$\213\169\153\169\27\215\4\1C\13U\135\0267J\7\189Q\160\1\29\28\10\212&\16n\129\12\127\188>\153,(\189\194\232c\11\8\231FiZ\27\4\2373\193\168\192B\4\132\161\169\141.\20c\234VH\148a\148\8Nm\225\182\145\182\246VZ]{\192\128pv4B7\223|3}\199\205\223\17\240\220\231>\151\190\243\185\207\229\231~\199w\240\205\223\254\157\209w\220\252\157\223\246\194\231\189\240Uc\\y\2055\195W\252\170\173\238z\237p\137_[\227\161_\175&\209\235\18K\255y|h`\127\165V~q\196Rvi\187;\242 \155\26\182\0022\1345D\154f\240\248\232@\136\131l<7\188e||\156\170\149J\197&v\223\174\137\9m\148\182Q\177a\129^\162\178\20\218C\164\246\203\132\127\220\133v\136\195\160\17tH\20\27bf\2022\0248\210,q\175\248\230\1f\1360(\148By\1\137\177\230Z\172\135n`6\251\1401\187`\26Ub\2145\161\241Y\198\197b\145#\182\148u:\4Z\202\244\219\164\203\148E\215\184`0\224\19\226\14\253D\193PB6\2160\137Z\11h4E\141JC\7\135\144\245\2410\6\252\179\12T\25\248\183\191\22'\246\211/~\2413R\208\170.\200 \178\149;h\192\20x\152D\174\16Y\245\10\161b\8b\193J\149\192\136\1750\132E\11\4\7=Io\148\168@\24u\228a|{\247\238\165\239\249\158\239\161\239~\254w\211\243\190\235yt\203w\222B\248\14\169\224[o\189\165p\203\173\183~\143\181\241/A\252\215x\230_D\167\189\10\245\252\2Z\255\243`\248\31\160\144\127OL\138\23\17\243 \234\133\199\130\154\209\\\233A\235B\250\202\237\197S?V2\186\17\198\232\230b\169\1520\243>\162j\185\155\1409\164\0239[\192\194A\177g\163\203\243s97\14\29\154E\196\232x\3\208\234\21\250\163\247\170q\133\190\230\161\1987\196\250z\148\168\155\150Q7T\253\173\234(OS:\133@\127\6\29a\241\25LpA\153\203\5\155\252\127~>;\166\249@\144\193 \178\165[\15F1\153<]HF\192O\239\208\137j\201x!t\4i\133\232l\240\131\155\196s\245^}\239\164\29\1786\194\180\228\195\250Ji\4\198\152\166)i^\7\163\172\7N;\157$\178\166$\206\151P\160\132r%6\172(\1781E\1950u\226\2\17'D\20\26\180Z\191\214\169\1605\151\202\186\30jhJ\196l\8;;\170Vk\17\193\176\188\231\1\164\171\1610\194-\221\6\26U]\228\208\186\180`\30j\252B\160\186\10\16X0\208\227\165\242)\240\170mV z\30w\143\247\138\145m\196\"\138,YkI\141=2\246_\7\11\197\15\255\192\15|s\254cM\170/\228mTrmZ\16\184^\175%X<\236\19\161J/[<r<\22\148N\7\180a\234\26\22m~q\183\193i\214&=\16\133w@\255qh\132z\190\12SD\6O\214\0076\218C^\216\225\147\134e\1730\200\29\234`\31\226H$EH[\243\208\250\20kG\251\26\146\245/q\20S\17\159T\152\205\14\138\252\238\245\249\231\254\222m\243j9\188\171L\140\169I\195s\144m\149\199\5\196B\157\221\242\188A\221\30S\158\238\144\5\186\13\192\20.\128\14X\244\127(\24\25\198I\144Q\227Y*\216\232\238v\205}-d\144\26B7f\186\193\153\159\186\11+\149\\\9Fu\189\24J`P\172\208n\0216\196\2044\136\2075\163\163\195T\171U\9;*\170`\22\193G]\26\172U\2j\3\21\228Uhdx\144\198\198Fh||\148FF\6q\214\211\14\208\17m\173\1/\219\3\19b\132Si\134\0011\226<00\192\219\182m\227R\169\204ql\184V\171\240\208@\149\20\3\8\21\131C5Z\193`\13\159\28\198\192\191\9o\216\162\12\2112\245.\143\198(\4\234\241\208X\11k01\150F\176\198\186f\239^)\148J\3\198\198\215\223~\14\127U\25K,\"o\176\206\235B\171\18\241\216*8\141R\185\\\164\237\227\19546Z\163b\201P\185\18S\9i\165j\137\202\1812U\7\171k\128\246\134\31\231QC_^n`-\147\18D\13@E\224\2331(1\172\209\241\161-hS\169\\\166];\182\209\206]\219I\127=\31:\162*t?\144\235\167V\165A\196\135\7k4\4\232\175\250\239\218\1\218\161a|\170\193\206\209{\240%\200,\1y}\158\4u\9\169#\177\240V;\182\141\187\161\129\161O\199\145\253\224\15|\243\138\183\10e\245a\244q6\192\176\132Kv\8r\223\0c\138\1T\211-\197\204d\141\9S\200\192\192\0\149Je(\171\132\239\128%\132E\26\132\2409\134\241Mjxd\8\6\6\197\22\139d\140%\157\246\28\188\20mvy\212\6XbJ\224\130\135\7\7h\24F<T\27\128\241VI\235\236\199\240\240\8i\0299\136=9\151\162\158VP\204f\213\228\233*\191\26o\18\227\3\157\229\189\211D\9\242\184\7\4g\190\153\207\188\198\10r\13\13\208\0\140\168\134\14\31\196@\24A\155F\144\166\157=:<D\253\168\148\10\144\191C\157\180E.\131\151;c\245\158\162\136\169P\140\169\128\205\148\198U7\131\208\213@\181F\138Q\232G\249\15\15\13\2100\140i\8\245U\170\21\1724\28\234\232\156\145\187f\194\155I\132~+\22\203\135j\181\242;Jf\233\176\166\3\232(<{\183\233\133g\13D\24\187\15Z9\24\21\145\208Q\26ja(4\24\151\158\182\235h\10=\129\170:a\237\212\198\14\165\13\193\129f+\252d\229\242\210\18-\225+\191v\186\210\175B\185\17F}7\204GL\134\145\175)\6F\172\180\25\140\133\0\221Nw\240YB\161\241Fc\137\150\151\23W\208l40\18\187\30C\203\234\148\155\203\172\252\160((\181;J\181\13\157N\135\1813\182\141\143\225@\218\236\3\163\170\210\1h\13\158g\184\167\167\241\249\212`\160C\9\202\11\211x\208\145\22\201\235\180&\194\171!u\158\2509%\197ix\187U\167\180\217E\167Q\167\28-\164-.\205S\179\209\12\131W\151\14(\140\245\178\172@\223\215\194S\28\219\0M\247\173\14\245C\235\203\209F]\205z\131\230N\205\146\134\148yR\153\181\220F\240p\139\218.&\154I\"sg]\150\239y\222\243\158\167\202\149\245\244[2,=\0245b\158\00975\228\160!\240_\2110$\5\190Z\169`\205\229\225N\189\134\240D>\235\160\255\211\21t\176x\215os:\127k#\242\178\129\193\6\15\143V(\242,-\163\245Xx05\138\14\142\24\218\157&\140\182\133)\175\19\160k5]\147\169,\234\13\215\215\161\239y\27r\190\154\166\208\247B\161\192\227\227\219\172dr]bK\249a0$\209\2203\195\8\\d\31\137\242\204\161u\230YAG\208\19a\26c\192`\224(p~\6]\169\206\186\2086h\25mk\14\229\167i\10\229\169\208\184\194c\157\138\206\193\216\19\176\198N\15kSDH!\136\235\17D\138sC\133\210\10\198\129\242Sx\196\149\151\198s(\207\30\196\24&\241\190\142\188\2477\219\233\251^\252\188\231-\247\242N\11\206fX\225`4M\7\18L)W\19\249\2\180\139\155\8\204\3\242\198\230\0101\204\193\219x4\194\193\163(\29Ci\253\192\218\15#C\186\128\129\228\138\208P\160d\5V\14h\166\132:\148\135\194\163#\28\134\186\128\183\130\177\208\180\176v\133vJ\0\22\164\6`L\159ZF\235%\208i\156p\249\30\180\142.\186u 9\220\186\227\17\200\171S\4N\184\199\226\164p\21\142\253C\155\3\193Y\30\166\235-\196F\17)V\201\1875\11\6\156\130 \159\194\232XG\\7,z\182\199\144\181\31\130<\2d\221\12\145\191{\232D\161\229\21Z\31\131>\135\182\209C_\10\141\147\234\6\179uw\198\246\232+@\211\160w\184nR\168L9\180n\24\160h\216i\182\22\218\205\229\191hw\218o\253\254\231}\235\148\214\5\8p\218}6\195\10\7\163\213\170\25\128,\207\20\226B\175A+\138\0224Bq\26\231<\1\138\234\149Yc$\253i9\233\185\134A\8u\16\2538\3\147\141\234\236O\211\184z;x[\25\29\25\149\184\144\212\172\161}/\188\128\31U\246\170\31\24\133\7\4\6{\6\241BV\191w\238\143\135\204\222C\2/\9\250\236%\173\4j\16+/!\2105h5(E\127\217<\174\233\171\160\192\183\151'\6\231U\30\10\233t\218G\23\22\231\239\152]\172\255\206\247\127\247\205+\159nB\21\27<\206fX\161\2392\19\15\195\168\174\196\11\238\13\184\244%\177Z\127\0\193\23i\163\168wi\220wG\8\20\28\188\11\194^\230\166\129\135\209\244\131\192\187\0310xR\175\148cSF[\204p8]\134\0170<\22cq[\136ma_Z\157\212Smm\187bK\156tm\184\17\161\26\203\26\144\250\215\141A\216\130\19\218\31\176\17\179\13\210\214\240\238\151V\249lD\191\174\254>\18\209x\171\217\\NS\247\207\147\147\147\191r\236\192\212[~\252G\190\239\184\166\3!\31\225\134\247\217\12\139\246\223s\143\141\141\\O\226\245`\148`\201\12h\24\144s\21\24\137\"\127\239v\254\234\219\165\141i3r\172\175)O\223,\\K/\2400:\157k\234\232\200H\194$\215\199\206\213\240\174\138T zi\239~\2278\223\154\180/\20+\229\213H\195\139\14\240\16\217\236\161mTw\216\134c\252\215\233\147'\223z\236\196\225\159\251\212'\254\225\3\175~\245\203\22z\133\148\166\23\2218Pmo\156Cp8Dt\195t!v\20]\239\201V\29\252\13F\17*5\4;\10`\172y\20\6\158D\161\139\245.2\242\216\30w\227\157^<\195Y\140_\3\143\169r\13\156\144?\7d0\132U8rn-\206\198+o\199J\8mbgH\198X\26\199\153\153\141\237UV\226Q\168b\139\183\193\170/\130\242t{\129\213\159\186.\207\212\229\207\228\160\147~\16\228=\19\206&\255f\249\185\176\186e[E\215\1682\135\141\1\244n-d\2125\26d\194\162\30\219\14\248j(\176\213h\28{\236\241G\223w\224\241\175\253\204\177C\211\191\247\211?\241c\255z\231\157wf\224)= 8\243}&\195\210\245\21\182\222T\18\22\24\150O\160\29x+\175X\225\10Q\176\174\1311\160C4\190\146\177\0189S\21\4\150\178\22\224#\231\13\248\1515e\245}=P\223\26\154\181\239*\182\214\143\144\135\6\7%)\20\134\10q\233\154\219o\191]\27\210?\185\128\228\194o\173\235\146\0\3N\250\208\149\212`m\0143\235y/\216\16a\131!8\198\16\198\17\201\204\204\236\236\191|\237k\255\253\171_\189\255\149\15~\249\129\255\247\167_\246\146O\255\202\175\188\188\222-\139\241\210\139l%PemF\167;B\201\162x\8\170\191\1\26\1417\"\20\204\209g\6\140g\13\141\190\175\130\144\183\22\27\213r.i\218\164\28\231Rn\149\1827@dhx\152\170\165jM,\150\2\20\14J\149\136\245\177!\176o\134\171\243\154\167\211\153lH\153\203\214\13\149n\13\160\15\223\7\229u~\232\242__\214\176%\253\156fM\12G)\178\132\243\196\199\30{\180\241\213\175~\229\11\159\254\244\167_\247\192C\247\191\234\181\191r\215\223\223q\199\239\158BY\233\3\162[\191\181\2463R\155\132v\130`\27p\158\247Y\1718O\190[(\214\27\153g\162\\\239-zFEHgf\226\161\145\193\164\16\23\246-.R\9|\24\216\244.MM\161#<&\242\238\232\206ymZ`\163\12,\178\13\184\4`y\177\158\228\188x\2461\233\2240yaaA\14\30<(_\249\202\151\179\143\127\236c\143\127\250S\159\250\163\207}\254s?\251w\31x\239\187\239|\219\27\142\18\221\11\183\22\218\0I\250\10\159C\244\140\189\254\182\15\1278\17\231\159\145y7\148f8A\194z\0S3\214@D\25\22\13\10\135\22\172N\171\0\0\16\0IDATa\169\16c\201\198\5\2100\135\199\200\195a.h\149\190\11G\140\243)\166&\26\232Y]\179\135{\238B\207a\20)\190\219i\216\15\135\181\128B\211\242\246i\28\6\160F\128\141\0198C8]\02713\180b\2\153\202\160\242\225`7tSN\159\135\129H\31=#\20\152\142G\233\12\188\244\243\206\224\208h\204\198\238K\173\203\23\240J\189)\"x\2X\"\233y\152\18e\248\242\144\2Y\234\241\5\0\206\12\211\147\133\14\"\180=\0bF\128E\157\10\141\2359\31\7i\149\3\145z4\135|E7\133\130\206\1401\148#\240bC\214F\164iJ\167mL\177~\154\155\159\167\199\31\127\156\238\191\255\1\249\231O\127J\254\225\31\254\193\223s\207\199\167\225\165>059\241\243\7\31\253\234\239\254\237_\191\251\129C\135\14\229\127\204K\180\252\133\0M\218\176\184N\131\188\163^\138a?\215\128\162\136\190\130\202\209H\172Ot\212\168\208\30\135}\30\29\142|\210\249\188\221N\169\137O\8\250+\219\139K\13Z\172/S\29\159#\150\155m\234\162\25>Ot:\29\10\229Q6\142b\202\145\196\9\226\17%I\28\194\24\135\140\154\166\136{t\214\152\240'%\235\224\173\159p\244s\135\162\209lR@c9\252\230\2402>\229\232\143\228\170\145j]*c.\171\198sh[V\160=H\134T\190\6\2027\218-|(\174\16Y\187gx`lG^f\171a^\239\26z\195\129\127}y\153\22\234u\210_\179\159_l \222D\28\225<\210\151\234\208[+\180\167\157\165\24\2000\200\30\19\229\169\134\202\172|R\154\157\155#\253m\239\137\201\201\240\155\230\143<\242\8\221\255\192\3\244\133/|\145>\245\153\207\200G>\252a\250\216\199>*\159\253\236g\253}\247\221'\143\127\237\177\249\217\185\217O\182\155\205\215.6\150\127\233/\255b\246\163\247\222{o\255n\239\130\141JE\221\204\176t\225.\174\144\0148\201n$\233\174/\208(\214B9\24Jb\230`$K\203M\154<y\18#C\127E\252\16\233\175\140\31:r,\252\10w7~\148\142\28>\138\198\159\0084\250+\246p\199x?\182\6\250k\241\253X\249\21\253\222\175\235\235\200;p\224\0\0298x\0|\30\167\199\30{l\0134o\226\196\4MA\209Z\199\169\233ij\192\184!;<F\186f\163\161\6\165\2339\180]J\171\127\4Ne{\236\209G\185\190\180$I\28\13`m\187\247\166\155\182\246W\149\153\153\152\0131\179\178\\\3LCt|b\130\30\135\252\143\0298\136v\156X\193\193\195\19t\232\196):<1CG&O\209Q\196O\28\159\164\250r\1572x\30\245D\214\152\240M6I\18:r\2280}\252\163\255\8\252\19}\244\163\31\165\127\250\232G\229\211\159\254\20}\241\11_\160\7\31|@\30\253\159\255S\166OMc\29\181\152\181\218\237\25\151\185{Ml\127\163XJ\254}}\161\242\23\127\127\247\159\159 Z\249\155\24\23\197\160\242\198\154<\178.d}o\1823L\129r\1810\212\202\196\154\182\0172\151\5/\161\127\151@Ga\171\213\162\204\185@\170^\2\179\10\185L(\3\14\0319B_\190\239\203\244\249\207\127\158\238\251\226\151\232\19\159\248x\192=\247|\130\20\159\2488\222\129{>q\15i<\164\245h>\129\240s\159\251\\\24\145\15?\2520=p\255\253\244\192\131\15\4<\136Q\170\208|5\168:<\130z0\2536)p\187*\140\254\22\144\134\138\2050;;C\179\179\243\180\180\180L\237\182\254\214\143\161J\185Z.&\133}\163\163\205\4\229T\15\10D\183zw\213,0\182\163\199'\232\248\201iZXn\145\19\1391\171\199\19]\16[J1\11t2G\141\158\231o#\174\186#xR\193l\225\224\229;XFh\205\157V\155\150\22\23\165\209X\150N\187-\30:7\214\138\238\244\226$qq\18\215\227(y,\182\241\221\177\137\127\9\189\248\138l\185\248\167\127\254'\127\244\232G>r\135\254(\131\26\147B\217]Tt[\188\1\203\219o\191\203\20*\213}\16\16g8h\184\231\158\18t\166\7\176V\208\233O\27\235\133i\30\238;uB\195\163c\180\251\202\171h\199\246\157\180m\219\14\218\182sW\128\254q\179\221\187wSdm\152\202R(E\1672\157\170\20\170,E\254\2051\235\180V>\198\250\12\158\166\7\129\17g\152\162\20.|\3\243\228\161lU\184\"\130\23m4\0274\130\29\157\214_\27\26$|\154A\11\187M\133\168\136\235\237q*\2157\1970\145\254\5\156\165\197&\181[Bc\227\187i\247\174k\248\234k\158\206C\195\219\147F'\219gm\171\172%\1\0016\188\141\193\225\12xi\166\192\144\8\6\161q\213\209\204\204\28--\183\137M\145\198w^\5\236\161\177\237;\128m\1\163\219\198i|\188\139m\219\182\5\29\14\15\142Q\148\148\1764\192\250\21\134\197\214\160\189\142\28\140K\176\2385\224\31\16\25\23\197\166I.\157\129\14\254\181\211n\255\29\250\2317%K_V\239d\175n/M\254\213_\255\217\157\7\238\190\251\173-\200\163\242+\16\1894\183\217\128-k\218s\158C\0099~\186\225\168F\221/\150\27\10\162\211\137\210\231\176X\192[\19\135\215`tp\\\234\177\8\10\128\7\160e\140\212\8\238<2\22\11n\129\146y\13P\230\1407\140Hr\144\243B\16`}\129,\203\160s'jD\2\18\163u1\147sB\216]\4\217\12\162!\210\255\192\2^<S\185T\5\6I=\10A\238R\169\18\21\146do\\\29\24\4\185\150d\132\167\221\205\237\219Y\152#\194\195\163\220i\4H`\178T,\215\168P\172\18c\203\189\25\29\245./LL\17\25cHeK\177\0170h\15t*\24\144\203l\236\17&\250*\6\220\135\\\150\221Q(\20~\17\239\255V\172\249\143\237\197\137?z\255\159\189\2273\127\251\190w\156\186\251\238\187S\176\148\30\16\\\218{#\195\194\199\252\253L{\6JDn\175\137->k\160m\164v\160r\209\154K\191\249\177\172\142|k\186,\181CsBt<\20c\225\169\154\4\183\29\226\22\158\139\200\147\5y\14\236\134\4\233\29kL;\135an\159\9Pb{=\178,\237\160\3\130P\30=\192\204\168\19\29#B*\203\26x\164\1\176O\210\11F\27h\1539,\154\157s\\\171\213\168\\\174n/\23\226=J\179\25\1941\22\25\178\2140\16\248\172\167\213\244$NB\158\202\177>\127\253\187\199\212h\172\242\180:\134H\229c\195Z\180S\170\214\254\1582\250w>\243?\154\154\246\127\168G\233o?\248\229\214_\253\217\159\190\237\203w\191\247\237S0&\245N\202Ru!\26y\162\128n=\189*\253\137\209b\26\0139\226\27\209i\241\233\20gN\209\198\7\10x\0\130\162U\11\204L\237v'(\198\194N\21\140\166\194h\136\153\3\16\159\0\249\251\197\154?&k\222\169@\206;\207\8\230w\146\225w2B\133\8\191\195\165\238]\206e\15\195\138\224\182\4\167\31\6\252M\168;\200\181\2420 \241\0\1\26zr0D\157\162;i\7i\16\16Y\197bQ\224\9\6l\18\239\195\9\252Y\245!\232\247\149*\214E\28\12\197a\234V\29u\176;^\151\29\234T}\245\3\237\130\252j\232\232\17\204\30.S\215Kn\219\248\216\215\190\233\155\190\245\139\215_\191\243\241\187\223\251\222\147\31z\247\187\235\247\221\23>\189([\21>\135\190?\1610\155\213\22[\217\134\229\204v\205\135R\9\211\0119\236Lrd\200T\8\188\149\136\172(\196\24K\2069R\15\160\202\211\17\167\138\201\176FZX\152\15|0\226\2\189\181\189\234\187\12\28\17\127\25<\127\1875\159\189\2065\164\139\206\220\235\220\25 -y\221\28h\1655\247:\197\178i\190n\180R\251\141R\185\250\17,\130;\30S[!)\9G\134\16\13;\195\12\211I\154\186\16'\202e\232\134\152yH\12\147a\14\157\233H\168R\173p\161T*\162M{at\5\"b\162\0\218\236bt\169\1\178\176\248\206\168\1717\143\246c\189\8\227\213r\204&\232\161\219|\9qM\239\0073\7YT&\149\205\2510\0\152X\24z.\151\203E\166\238\133\218BDCExy\178\30]m\174\171\253\174\187\238\138\179\200<\19K\196!t\134h\131\20\170(\134\200\10\141\175+\22^\217\240\138\130\208\17+q\231<\181\155\13\226\160Txf\15603\231:!B,E\201\3\220\142\176\30x{\227\253\239\191\163\222\197\251\17\158\9w\212?\18h\1874\31z\247\149\203\181g\\U\247\204'#\27g\2324HL\225bF-\136y\4\218\30D\131|\160\233\133\0129\"M\14F\1684\200\131\164\193\184\18\27%\215G\209\142j \128'\235\133[\8T\205&\240D\203\207H\143\250z\178\8\169\254\250\137\153Y_Y\229\135y\233[\228\220\154\191\202\184\210V%|2\161-\238\175?\28\140N\211x\194\194\2158\241E\163\150\210O\177.\238Y\21\182\202\13494>\1402%5\198\144B\215:\13\28:2\12O\211\153\149\206\163#\0093\159\17\195&e\230\195\157\206d\170\249\128*\233<\176_\30\254\240\135\211f\189\2455x\166%\240d\10]\1\142\235n\225u\9\189\215\245\233\24\20<04h\1766\186\214\150x\24d*\215\134\165\209\\bF\155\153\137\153Az\246;\24\10H5<;u\151\2\154c\199\216*\21t\9\220M{*=W-\162O\170\18\217\18V&8\0245\234\246\137\5:\146.\129*]\177\153\18t\196i\158#\166\12\222I\223\181d\138\2074jX\26g\134\0225\0020.\4\132u\2012\134\234\161\233\233i5,\173\237|AX\180\250J\185r\0\159W\244/\213\4\246\250 \242\221`\221S\188V\213\151(\24,x\213vx4V`(8\203\"\27\219\209\164\16_\133\172\213\6\224e\237\221U)\150B\196(\199\24H\12\234\254w\129\245\9\2101\250\208n\148\22\148\233\193\211j\28U#_eV\128\174\239\22\"\6ia\217\146\165\167\224e6\146)\205\194\226\176\132c\"\19\137\133\228L\30k\133\12k'Bk\2rE`\138\211uT\161\144\0163\135\207\21\204\1607\1500\160B\154\30-\180\155u\210\245\129\214g\152C:3\195\150\28l\207\177'_\23\226\195\247\222\187\242\1TI\207\27\214gM\28\212\206Yk(\212\7#g/\168\15\240L:\205\4`\173\149W\194\204\148$1!\155<1\225\164\145\218PB\230\189\152(\146b\177R\21\225}\183\222\250\239\146\188\204\250P=\188\245`\132\140\164`)\142\0139\172GS\172O\245\12\175P(@\6O\30k\1658\142\144\7s\247}\128\2343\200\217\5\22#\130q\6\237\196h\135\195\224\212A\160\2356A\28\18\154\1\212\243T\188\205z\161tG8\209\166:\22\155\255`\140\1693N\252\196\161\165 df(\194\7\168b\20\176\10(J\200\5\195\203\136z\134\230\1608\143\206\20t\140K\2198fh\6\163\3\155Mn\158lg\157\240\215\224@\192\192\249\222\1306\240\210\169\214\2\251\244\225N\167\165S,E\232\196\205\24\170\129\229y\204]\149x4\217a \25k\137qEq\204\195\195CEO\178/\26_VO\1742*\242\162\189P\172`C\211{!\29t\202_\141;\130\167\2+b\232\197\193\208\212\139\27\195\202\127\5]ofHC\134,\"\142,6\30\202/\234o\131\22\19*6\12\198\189f\18I7xj<\187Z\\\149\165+\220\225Ov\218i\251\239\11\145=\25\131\"\197\1828(\1329\24\145\8\200\208`m\180\26\144\22\143\226\152\2447\160\13\232\1415\164_\219\141\17781 \\\30gX\141P\150\153\241\190z\171\2420\2023f>\196\137\215\31*c\228\162\2<\207\239\214\242\248\1964\167g8G\2278N\1898\201\210lC\158>P\175V\164\30\165\136s&\237K\28\23\145\228\3\6$\213J5\198\209\195\245\21[UG\161\252\20\200\233\222\203\203\203\240-d\136u\18\235\166a\156\173\180\219\192\136\10QL\177\141(\130O4\128\207:\228\244':{\208\247~\168<\10\15#w\144\165\203\21V\132:\196rRr\153\201\211\158J\225\166B\21K\229\19\195\3\213\15Zc\219=\227\9J\20\24U\0F4\1Y\154\18A\157\149R\129\6\135jT\136\19*\198\17\21\147.\"Xf\20Y\242\240`\1763\"(\19\143p\131O\224\137\23er(\210\191\29\137\23\220\235\186\27)[\191\213c\201\204L\219a]45P\171uT~\204\139p\166\152s6\224\0039z\169\158J\229\2\225#-\149\0101\149\162\136\202\197\2U\203%\12\154\132\170\1812\27\27_9X\169\142\209&\151!C\12O\1950\"\13\5:RRc\12\12\202\130W1\240R\254\5l@\171\168\175\31\181J\129rT*\160-W\8\198L:\149\246\159{\137\176!\225r\150D\17<t\174Gz\170\\f\3AB\199L?\242\201F\177d\254\188\190\1800\133\131M\232^\130q\172\210kQCI\20\19\163Y\149r\153\182\143\141\211\232\232\16\13T\203444@\163c\131\180m\251v\26\24\168\210\236\220,1ta\163\136\20&J(\192\26\168\200\1800\227\30\198\154\8\6F\224\22\176Z\213y\196\238\184\227\149\29\248\141\135\6\7\6\23$\203\244/\215\192sx\202\176\222Q\184\204\147B\189\174\178\215o\148*\223@\181F\187w\238\160\161Z\149\134 \247\232\240 \141\143\12\209\206\157;x\239\222}T\173T\134\188\137\175\189\245\214[-\0171\173\187\140\181\164F\20\177%\133f\139g\210\3Wc\153\198F\134i\219\248(\13\215*\224\219\141\235{\142+v\239\164\21\236\217Ec\168\127ii\137\150\150\235\196\214\144G\163\8\198\235\188c(\190T.\21U\14\173\134\245\241T\129\217\\\16\162\133\227\179\135\218\237\214\221\176\1706\160\29\131\0\171\12Y\11\1347R\227\10\222\200\11\232\132\188\186x,0\29\\\252\226\226<\161\23\241\209\151\2\242:\153-\139\199~\137i\217x:\136\221\\\150\231]\140\208\177;5;;So6\154\232\16!\230\141\155\155\27\23\186\13\213\250 \163`\14\243YF\25>\1347\151\27\212\\\174K\167\221\145\145\177\209\1705\230\250\165Z-\1\177\222\172\143.\246\16\26\159w4\146\180>\5\162\189\27\173\5MJ\2\189\248\172E\157\230\18\150\9\203+\168CW+\192\129\178\254\177~u\228\14\178\244X\160\138\160\127f\226B\135\168\175\190\156\226\201\15\215\182zU\158\224\181\30\129\215\242\206\189G\196\31\195T&\171\217\26\211i\197\163\0194$\140!\143\1\4\157\145\131Q\165\232\144\20J[\166N\171I\211\167\166\224\202\219(\228A\128*{;J$\0163\147a\158\135\170&\8\185= \184\160[\180\180\2394\150\235\245\165\227\157T\127\252\5\204\5\245k\6\2241}]\165\215\172\0\0\16\0IDAT+\16\237\221\221<\152:\8\29\218\208!\253\9\10\1599tz\139\26\205\6\167i\135\1478I\200\152}C\209p\9\5\25\208[Cn\13/3\20b\137\25\239h'u/\232\143\216;dy\10\198\235R\240O)\237\180\187\128\142R\160\211l\160\174\6\234Z\14X\198\185_\167\217\"\143\1\10\134\164P^\152^5\0101l\28{\183ZQ\183\186\167\196\243\140B\233\220\1575\166\14abz\15\1774E\16\131\218\187\146kQ\5\5\133i\154edb\138\241Pb\134\17\153B!\186\179\170/.\145\135\0070\234\202A\163\180\10\193\133\16>\142\142:N\23\16\191X7Cv6\237hA\132\31\178\198\182a\188$Z\211\25k\232\26\23a\29\136\129\132i\211\161\140\26\3\7\249u\173\1345[\\,\20\246\142o\31\169\129\149\244\128\224\236\183\244\27\182\199\172\143\0059\171\183G}\168\129t\179\160\208\141\131\"\134BU\14\197z\217\241.\236%\22\167\148g\175\251\137\166\232Z\198\198\181\170\210\232\145G\30i;i\191\31$\255J\240F\170t\196\137z^\1993\198`\207XTq\172\191g\8Eis\19,\220=\166\196\180\5\135\141N\213\2065\6l\173\16#df\194\157\177\200A\211*.\131/\247\128\224\194n\24\150,,\180\179r\181p\10\131\1949/\18\225,\138!o\23\0171G\212\149_\213\208\133\136\132\138u\139\159$\160Ar\28[\210\157\28D&]w\197\214\236N:\1803\16\0181\173\191\12C=B\197\138:5\168*\2404$\210G\234\17\247B\24\131D\25\24l\130\216X\204uL\12\218\245@)\140\25T\134\8\238\174\224\136<\21ns\22!\194\14887q`\194\139\127\139\144\204{\239\161\251pCQ\178!T\1\24Q\164\208\255\28\179\221n\19\163\253\204\188R\157r`,8\160\236\142\136=\178\188|\188\141\204\139\165\156\192\231C\139\143\164\2433\139\135\178N\218\0oJ\211\0206\236I\2249r`\170\167\0\244\176\7\242tG\30\195h--\242 2\203\224@m )\198\251n\186\233\166H\249\174\195\26\157\162\192J6\172{%~>\17\241B\138\188,\212g\140\201V\149\154g<\5\1945J\216L\158\137\137\9\215L\253?\1467\31\7\13,\203\145H?\208\224\252\189\215xF\168P\163ja\253`\141!Ur\14h\4Q&\19\153\134\177\156\127\202!\\\193(\16^\240}\239\254\253\206\179\251\23/\130\221\3VT\24\20:%\247CD\208\22!\135P\145ajR\244\211\244\197\165\\\169p\177T);\161}\163\1637\232\2~\165c\135\154\3\136c\194\215Q\212\147\222\26x*\232\"7\8\129\167R\244\178/(\16ac3\140\216\11\226ri\10\155-\176\13^\235\224\3\159\154s\153\127\189\19\127\196i\7\161+\188\142i\17B\199m\0105,\5\172\8\134\181Z\29:Tof\146:<\198\161\222\167\156-\136sn$\197j\177\206\196K8 E\253\168\13\242\162\226`L\26z\24R?4\173\31\235\218\198\157N\7\231u\131I\28E\251*\21\170\156M\26-\1754\253a\30\215\244\179Ai\251\209\163\23\13\161<\214\240Bq)\202\175\246\244Y\184\235\154\165\185x\228\17\172\24\222FLu\17\140Y\152\211J\177\222\154+\193\166\169\155f\200\160\229\11\11\11a\17\204\220\213\0013\0193\0192\3\152\248\164\176\156\234\150\185\168\207\160\252\233\201SK\11\139\139\1432\0278\"\191bP\185\241\156^\163\170Dqz\142\166D\214R\173Z\177I!\185\1744\136C&(D\211s\152\8\7u\189\23\253\26\161Q\231A\212g\208\154\150\215\239\145~&(m?\214\210\194\11G6\23\150\251\233\158\236x.\212\217\228\8\157t\248\240\225N\199\201_\130\248\30f\11u\173-\174\134\148\165)\178\187w\6\219\211\223v\233\190\157\254\132&t\201zHZn\9\185x\13\187ND/\202\173\252\136\234\180\156\20\"\24\150~\205\13|C[B\236<\0300\8\182\176\157r\169\180\13\11\252+\192\162[\15\"\173Z\3\147 \179\177&\132\22\3\8\244+\198\12\18b^!\215\215\179\162\191\252\6\241\196en\240\172L\158\4\130\181\150qf\1\194\148x\224\129\207\158r^\246\139\240\227\30\174\134\4{%\245V(\171\163)s\14\177\238\141\1972\233/\150v\223V\159PP\183s\15326\230p\189\228\154\189\220s\211z\175\208&A\168cy\2049\24\252L\7s\161\9[\210M\168{\201\30\18(z\175\167\5*{d#\169Uk58\167}/|\225\11c\16\161\20\158\184\153\217\"Xw\195S\130\162\127S\184\142\224\172\175Z\182\15\224F0X*\182;\157\241\219\187\127\176\228\172<\158H\130s1,\149+\24W\253\228\193\135aD\191\133\1329\193\1330t\1626<\243B\194X\176\162\233\14\235\23\228\133[\201\216 1\188\17\161\3\148\176EB\135\234\214\170\155S\30\10\186\152\215\254\151\29\238,,-\253\11j^\192Z\10\1)\206Z\133gU\141\182C\129N\236\149\242\1589\142#.\149\203E6\188o1\142u\1\191\194\2073\25m\171\130p\229!\218\1397\229\163\252\12\246\156]\8\27\218\10\180\176\242\234\1\11\17/0\215\196D<|\227\1417n`\204Z\226\201\131j\239\156k\215]\162_\238|\200{\247g\226]\219\251\12\202!qP\18A\207\29\152G\11\167\203\243K\139\148\226\219\\d-\233\244\161\21i\24\197\250\231\16,\155(Z&\161C\31\185\227\0145,\205\190\4\216/\16589\138\158\208\159&\197(\135=\11\4\\W\147'\19:[\147u\129\174\159\129\0268\127\235G\179\221\161\150\158\150;\161B\169\156\20J\149\235\175\24\187R\15J\181\24\213ZUfl\157E\16\132\20\210\237M\128\26\4\161\14\156\31S's\212\128\146\154hu\171\147\129g\22\2104=G\27\0113EF\17Ip\130\144\207\247\152\"Py\133)\18k\170###\140\164\167\212m\206C\154\224\181\30{\236\11\245,k\191\5\227\230^6\236\180\3\166N\205\208c\7\15\133_\175?z\228x\248\213y\135\169\145y\227j\160\141\5\244\145\254\31,\0029\20\8.\254\221\238H\3\142\244\148N\205\224\30\234\209\142\222\8jT\186\225\208\223\234>t\244\8\29<z\0128A\135\16\30\0\14\0299F\143\31:\2043s\11\198\218\248\154Z\169\146\255\1682\181\219M\134QY\212\209\187=\12\217\145A\251=\252\139\14\178e|\182\153<y\138\142\30;A\7\14\29\161\195GN\4\28<t\156\30?\220\197\193\163\19t\236\196I\154\152\154!\253\207\216\23\150\234\1643A\206\7;\243`\172\25\177\177\20\149\178l\199\198\10\238I\241d\4\231+P0\174\131\143\2207Q\136\163_M\157\127`vaQNLM\203\228\212\20\233\223>X\\\\\132R\133\28\14\29\1415\196\204\1\218Ht\1680N\247\132\228\24\150h\23\243S\142\178_\3\236f9]Z\\h\181\150\31f\203\248\4\176&\27\251Z\31 \232x\197\137\201I:>q\"\252\161\141\197\165eZ\168w1_o\146b\166\222\162\217\165\22-\193\227\224(\127\132\162\248\154\222\26Gh\132\8\235.\19E\150\2123[\132Z\0273Z\138\136\30\187LA?G\142\31\163\233\217\25Z\128G\159\135\209\172`\177N\179\243\1394\143O`s\11K!\222\192\25`\138\193\137\226\193\1524\204\193$P\173I*\1499\238\165\229a\239\245\201\11\204\5T\29\140\203\183g\31nf\233\175,.\213\15\213\151\234244\"W\\u%m\223\177\131<\140\1381Z7\172Ct\151&\135\226\204\\\212O9\27\213U.\143u\226B\241\132d\146\193\208\197\227\159Cg)\16%\133\174\7\21\245\165%\156\208{\170\212\6i\231\238+N\195\246\29\1874M\198\183m\151\129\161\177*\154\183oz\186\162\11x\169\180\203L\222Y\193BL\141T\224\190\0b\195\164a+\237\208\226r\157\176\147\163\209\209Q\186b\207U\180c\215\158\21\236\12\188\247\208\216\182\0294<:F\131\195#T,\150\129\"\193Z\3\15m\159Z\143%f\198\212\200L\145\166=\213p!\134\165m\145\23\191\248\197\254K\243\199?\185Po\190V\200N\13\12\13K\177P\193\212o\1361\233$\198*\221\10\160\20\205\131\1992\169\177\246\144s\179\23\243S\206J=\189H0\254\137\137\251\178\172\213>\129E\183\214\21\178\180\179\21\250\162\157\174\161\174\171\210\212\1455\134\198\199\199)I\226\1288)`\233\216ET(\146\141\11\28\23J\\,\20\11\214\22\246\13]ME-\223)\183\217\224S\130aK\140\254f\178d\192+\2032\210\171\211I1]\182ill\140\134FF\200&\17%1\234\136\11\20i\29\197\18\21\139\21*\149\170T,W\17\150\169P.\147\135\210\172\181\196\204\193(\2130\17900<\210,/\150J\160\208\26\158:0\23C\148;\127\230g\178\19\15=\246!4\254w\"\19\205\162\163\164\211j\139z\132\156\191\129R4\206\184BH\210$\242\135\17O\1\189a\134\26\\|`:L\27\173\246\195\232\140y\18\216;\22\\\146C\228\172\21\234\0\201\129\238\133\216\232P\20\139a\21I\146\\_K\6\6\148I\169]d\204\168\145#\212\129\8\244@\170\3\239}8$\246\240\224\212wi\254\233\240\240L]x\242!\174\198\9\11\237+\185\0185\157\180],/\21\195Os\172\164>\5\"\23\195\176\160b\"\253+&\213j\229\207\162$~\19\0273\223h4\4#T\2160Yc0\178\186!\17\186\150\136\137\205\18;s\232\206\238_\227\165K}E\197\2>I\185z\175#\185\23\134j5\30\"\189\135\231nD\141\201\160u\6\29\172`q\212\31\150\139%\142#{E\193\198\227(\193\157\"<VdM\12\239\210]cE\240YL\204Lj\28\204Lza*&\172\19`}\250\166\2408\163\232\2\25HP\195U \138;\138\192'\178\136\173\220\250\195!\144El\234\253\142\5i\22Vr\158\"\17s\145\228\16\229\243\198_yy=m\213\223a\133~\191\221i-\136d\2323\236\2514s\29\160\226S\169\147\147\235\146/\197\171N\135,Y\187\158\166\157\195$p%\20\140;\212%k<\150A6\154\130\3_\207\136C\200.\17\212\1324\234\129a.D\134qI\28\21\134\146Rq/\22\240\177\133\245 -\6O\166\222\229\193\159\225\29\177\139!\13Y\173\22|\4\20\138.\25\248\211F\232\229\26\24\150\209\252\238{\254\20\241Q\28\197\219\139\181R\17^\25\130\175\182+\167y\178\194\211\165=\127I\180a\212\154xdifv\234\14\223\233\1885b?o,\26\11\141\234\16S\16F?3N\149\216\31\242\230\162\252V\206\217$F\23\18\205\180\236\"\250\243\17G\210\1\8\16\\+eW\226\162\231F\0\214H>\192\128\150)\19\10\161\163n<u^2\28JU\202\165\138e\179\143h<I;\9\236\138\173\177]C0\204T(\196\196\204\176+\135\186\12\25U\8$J\29\227\252\202\227\156O\214 K1m\246\193\248\136\152,\17\12\207aJE\164w\195\1631s\150\165\1311S\210K\228^\248\164\7\230\"K\160\222Ah\225\240\226|\251\228\219\200\1867\194\172f\209~\201\175P\159\136\254`\212\161$\157_\14\239\4\221\209\165\187t4\15\180\201\137\240\172\16#\20\201k\131\\\136B\13\176:B\231\25k\136{\185\2\151\162}\233\157'Q\175\3\202<D\20\205b.WJIR,\237\141\134KEk0tD,3\10\130@\239\20\7\160\29,\222uy\229\189P\6(_\20\166\8\6\168!\232i#\168af8h\6C\10?h\200\140\25\212\3\25\160!L\223\218J\236\224\210\180\178\167\16\204%\144%\24\215\157ox\195b\211\248\183\131\255\127f\230)c\172\4X#d\185\3\245\0319h\173.\220\181\27\21 \189$w\224\253\161\15=\146\182\150\150\30equF/\3a\157\1655v\141Kc0-x\20\200K\4\3\240\250E\1\161\230+\188\243\129H4\173\7f\0191\153}C\229x ISf\130\155\163\213K\216\194K%d\227\152\226B\145b\132\22\6e\140\193\152s\20\25\218\20\22\223\249K\177\161\24\190\146 \179!&f\134\249[X\174\15\16u\155\244\212\187\204%\18I\148\239\187\223\248\198\250\164\171\191\203\11\189\26\239\135\2089!\29\26\197a\14\29\172NNfH\127B\238{\239\221\143\185\200?\138\238\\\128'@\247@\10\242\4\153B\2530w\132>t\178e\129\215J\201`Ko|JV\178\21\248\180I9\\\218\166V\171Ei\150\2384\20o\239\196X^\0171\173^r\234\228I\153\158\158\146\153\217\25\153\7\224s$K\219\210\170/\200\210<\210\230\166i~njC,\204L\211\204\244\132\0288\248\184|\237_\31\145\131\7\14\202\209\195G\228\200\145#\254\200\145\195\243G\15\31\254\204\196\212\228\251\154\243K\211\189*\165\23>\233\193\1652,mXh\228\221o}k\171\1790\249A\241\2523\232\208\251\141\2545\136(Z\226\152\143\222}\247\202_\236U\250K\137 \139o5g\166''\239\159\157\158jNO\158\160\137\227Gej\226\184L\1588\"\19'\14\203\220\204\148x\215\132C\205h\246\228q:u\242\152\1568z@&\143\28\144\169\163\7H\161\241\137C\143\203\137\131\143\201\177\195\143\145\150g\146\193\168\16\239\195\209\131\26lDd8\137\"\154\158\154\128!\28\148cG\15\201\241\195\143\203\252\204\9q\173Ei\206O\202\201c\7d\233\212\9Y\152>\234\23\166\143\175`\254\2281\175\152\157>\230gN\29\243'\167N\208\177\163\135H\255J\244\212\244\132;95u\242\228\228\196G\231g\230~\237\196\137\201\159Z\152|\252\206\222\127\158\20\218x)\149x.\188/\165a\169\28\161\177z\1640y\248\225{\200\243\203\224\10\254\17\25\7|\234\231\17>\145\183|\2303\31;9}b\226\191\28>x\248]\199\142\30\155\15695-\19\147\199{8*S\136//\205\251\229\165Y__\156\147\198\194\28\165\205:\181[\138e\233\180\151\201g8c\149\182D&s,\152+\217g\152\147`Lt\165e|\20\198$\202D-\180\179I\194\128`E M\2086\132|\131\197a]\153\213\17.\145d\139,\25\244\224\230\16\206\2\167\136\2204\210O\26r\147\150\253D\20\249cX=\28\141#~<f\251\223b\230_\242\237\236g\191<\245\248{\254\248\15~\235koz\211\155\26Pb\2083\194\167\204}\169\13K\27\170\141\22\245N\127\240&z\168\217\234\252\148x\255&j\197s\154\249D\0022\1847\188\225u\143,\204\206\253&L`\127\187\211\250*\139\160\179\165a\196/\25\15cg\154a\146\147\134\253q,\11\143`It\0\157\250(\28\208\195\232\224/FV\254\153\12\253\147\18+X\197\0\0\2\211IDAT\19\247\223\137\221\221X\136\191\15\182\244^O\217\253\153i\193h\252\7\145\254\22O\244&o\228M\25\153\223\3\222\0\186\223!\226\255\2#\252\13\242\244\235\"\238\181D\242\171H\255e\241\244\2558\225Wy2\191 \198\254Gc\163\127\143\244\159eO?\237E~\202\179\127\25\187\236\165\169\164\191P_<\246\215\127\244G\191}\228\222\247\190\23\22Nz\137>\158jx\"\12+o3\20\176_\238\252\253\223\153\1548\248/\255\227\237o\223\143N \164\229\217O\\\248\158\247\220q\138\219\245\247Y\182\175\132g\249Mf\254m\"\251k\196\230\151\153\232\213\134\249\231\"\226\159B\231\254\132\235\200K\178,\251\145v;\251\145\212\181_\210N[?\225\189\251i\28L\254\156o4_\213\225\229\215\248e\250uj\204\253\211\31\191\190\184\1760E\1273\147\213\2230\235\234ol\204\210\27[\243\238\247\1287\31O\231\127\255D{\254\15\23&\229\143\23N\210\157\1909\243.\2238\245\222\19\7\229}\173\249\227\255\181=\127\252\174\7>\239\255\230\193\207\186\255v\252\177\7\254\251\228\129\135>\252\251o\144\127\188\227\245\251?\246\135\175\223\127\207[\223\184\255\139\127\248\198\253\19\234\253\161)\213[\14\188>\245\238'\210\176\180\245A\25\240\28\24\208\23dT\202\235|\17dx+\214~\191\255{\191\249Y\238\212\239\160\206\226\31\204\157\164?=\134Nn\204\30\191\235\216\227\15}\232\205o\144\143\254\193\27~\237\159\255\224\205\175\251\226\219\222\180\255\225?z\203\254G\239\248\189\223:\240Go\254\237#w\188q\255\241\183\255\222\254\169;\238(\204\1681\221q\7\213\239\184\227\142\14\209~\255\222\247\238o\191\239M\213\166\226\206;\169\149C\215\154\10\205W(\189\226\238\187\247\167j,\138{\177\193P\168~\20\224'h\164\2A\1845\174\8/O\229\199\19mX\170\11U\140B\227O&T\6Q\3Shg\231\157\220\215\169\185|J\155\1995\212w`?\6\200~\13\129\149\129\130x\158\214\31j\1775\0](s.\225\26\6O\229\151'\195\176\158J\250\208N\205\229\209\248F\216(?O\2110/\163\241\28y\218\153\194\156\246\127\201\240\235\221\176\180S\243\206\215\248e\\$\13\\6\172\139\164\200\203l\214j\224\178a\173\213\199\229\183\139\164\129\203\134u\145\20y\153\205Z\13\\4\195Z\203\246\242\219\215\187\6.\27\214\215\187\5\\\162\246_6\172K\164\216\175w\182\151\13\235\235\221\2.Q\251/\27\214%R\236\215;\219\203\134\245\245n\1\151\168\253\151\13\235\18)\246\127]\182[k\217\255\15\0\0\255\255\139^\1932\0\0\0\6IDAT\3\0\188L@\222\9T^>\0\0\0\0IEND\174B`\130");return C("Kiro_AP_icon.png");end);if P then if type(g)=="string" then i=g end; end;J=i;else J=i;end;local C,i={},{"Flying Carpet","Witches Broom","Witch's Broom","WitchBroom","Santa's Sleigh","SantaSleigh","Cupid Wings","Cupid's Wings","CupidWings","Waverider","Flying Bee","Heart Balloon"};for P,P in ipairs(i)do C[P:lower():gsub("[%s']","")]=true;end;S,i=setmetatable,{__mode="k"};local P=S({},i);local function i(g)local I,U=false,false;local function T(q)if not(q)then return;end;if q:GetAttribute("AdminCommands")then I=true;end;if q:GetAttribute("HasFlyingCarpet")==true then U=true;end;end;T(g);local q=g.Character;if q then T(q);T(q:FindFirstChild("HumanoidRootPart"));T(q:FindFirstChild("Humanoid"));T(q:FindFirstChild("Head"));end;T=P[g]or{mount=false,flash=false};P[g]=T;local P,b=ipairs,{q or false,g:FindFirstChildOfClass("Backpack")or false};for v,v in P(b)do if v then for P,P in ipairs(v:GetChildren())do if P:IsA("Tool")then if C[P.Name:lower():gsub("[%s']","")]then T.mount=true;end;if P.Name=="Flash Teleport"then T.flash=true;elseif P.Name=="Flash"then T.flash=true;elseif P.Name=="Flash Item"then T.flash=true;end;end;end;end;end;q,g=I,U or T.mount;return q,g,T.flash;end;local function C(P)local g,I=pcall(function()return P.leaderstats.Rebirths.Value;end);return g and I or nil;end;local function P(g)return string.format("%s (@%s)",g.DisplayName,g.Name);end;local g={};local function I(U)if not(U)then return"";end;local T=U:GetState();if T==Enum.HumanoidStateType.Jumping then return"jumping";end;if T==Enum.HumanoidStateType.Freefall then return"falling";end;if T==Enum.HumanoidStateType.Climbing then return"climbing";end;if T==Enum.HumanoidStateType.Seated then return"sitting";end;if T==Enum.HumanoidStateType.Swimming then return"swimming";end;if T==Enum.HumanoidStateType.Dead then return"ragdolled";elseif T==Enum.HumanoidStateType.PlatformStanding then return"ragdolled";end;if U.MoveDirection.Magnitude>0.1 then return"moving";end;return"idle";end;local function U(T,q,b)if T.charConnections then for v,v in ipairs(T.charConnections)do v:Disconnect();end;end;T.charConnections={};if not b then return;end;local function v()if q.Character~=b then return;end;local q;for e,e in ipairs(b:GetChildren())do if e:IsA("Tool")then q=e.Name;T.toolImage.Image=e.TextureId;break end;end;T.toolImage.Visible=q~=nil and T.toolImage.Image~="";if q~=T.currentTool then local e=tick();if q then T.lastEvent="equipped "..q;elseif T.currentTool then T.lastEvent="unequipped "..T.currentTool;end;T.lastEventAt=e;T.currentTool=q;end;end;v();table.insert(T.charConnections,w.connect(b.ChildAdded,function(q)if q:IsA("Tool")then v();end;end));table.insert(T.charConnections,w.connect(b.ChildRemoved,function(T)if T:IsA("Tool")then v();end;end));end;local function T(q)local b=g[q];if b then return b;end;local b=Instance.new("Highlight");b.FillColor=Color3.fromRGB(126,155,235);b.FillTransparency=0.62;b.OutlineColor=Color3.fromRGB(206,180,255);b.OutlineTransparency=0;b.DepthMode=Enum.HighlightDepthMode.AlwaysOnTop;b.Enabled=false;b.Parent=X;local v=Instance.new("Frame");v.Name="PLR_ESP";v.Size=UDim2.fromOffset(380,64);v.AnchorPoint=Vector2.new(0.5,1);v.BackgroundTransparency=1;v.Visible=false;v.Parent=X;local X=Instance.new("TextLabel");X.Size=UDim2.fromOffset(380,20);X.Position=UDim2.new(0,0,0,0);X.BackgroundTransparency=1;X.Font=Enum.Font.ArialBold;X.TextSize=12;X.Text="";X.TextColor3=Color3.fromRGB(180,220,255);X.TextStrokeTransparency=0.4;X.TextXAlignment=Enum.TextXAlignment.Center;X.Parent=v;local e=Instance.new("UIGradient");e.Rotation=0;e.Parent=X;local D=Instance.new("TextLabel");D.Size=UDim2.fromOffset(220,32);D.Position=UDim2.fromOffset(310,28);D.BackgroundTransparency=1;D.Font=Enum.Font.GothamMedium;D.TextSize=12;D.TextWrapped=true;D.Text="";D.TextColor3=Color3.fromRGB(207,181,255);D.TextStrokeTransparency=0.5;D.TextXAlignment=Enum.TextXAlignment.Left;D.Parent=v;local n=Instance.new("TextLabel");n.Size=UDim2.new(1,0,0,58);n.Position=UDim2.new(0,0,0,30);n.BackgroundTransparency=1;n.Font=Enum.Font.GothamMedium;n.TextSize=10;n.Text="";n.TextColor3=Color3.fromRGB(170,202,235);n.RichText=true;n.TextStrokeTransparency=0.4;n.TextXAlignment=Enum.TextXAlignment.Center;n.TextYAlignment=Enum.TextYAlignment.Top;n.Parent=v;local L=Instance.new("ImageLabel");L.BackgroundTransparency=1;L.Image=J;L.Size=UDim2.fromOffset(32,32);L.Position=UDim2.fromOffset(36,24);L.ScaleType=Enum.ScaleType.Fit;L.Visible=false;L.Parent=v;local J=Instance.new("ImageLabel");J.BackgroundTransparency=1;J.Image="rbxassetid://223080070";J.Size=UDim2.fromOffset(32,32);J.Position=UDim2.fromOffset(72,24);J.ScaleType=Enum.ScaleType.Fit;J.Visible=false;J.Parent=v;local Z=J:Clone();Z.Image="rbxassetid://80101424917516";Z.Position=UDim2.fromOffset(108,24);Z.Parent=v;local G=J:Clone();G.Image="";G.Position=UDim2.fromOffset(0,24);G.Parent=v;local B={toolImage=G,flashIcon=Z,hl=b,bb=v,lbl=X,grad=e,eqLbl=D,infoLbl=n,apIcon=L,fcIcon=J,chamsFolder=nil,chamsMap={},currentTool=nil,lastEvent=nil,lastEventAt=0,hasAdmin=false,hasCarpet=false,lastAttrCheck=0,isRagdolled=false};g[q]=B;if q.Character then U(B,q,q.Character);end;w.connect(q.CharacterAdded,function(X)U(B,q,X);end);return B;end;local function X(J)local U=g[J];if U then if U.charConnections then for q,q in ipairs(U.charConnections)do q:Disconnect();end;end;U.hl:Destroy();U.bb:Destroy();if U.chamsFolder then pcall(function()U.chamsFolder:Destroy();end);end;g[J]=nil;end;end;w.connect(f.PlayerRemoving,X);w.connect(R.RenderStepped,function()local X=workspace.CurrentCamera;for J,J in pairs(g)do if _.enabled and J.active and X and J.adornee and J.adornee.Parent then local U,q=X:WorldToViewportPoint(J.adornee.Position+Vector3.new(0,1.3,0));J.bb.Visible=q and U.Z>0;if J.bb.Visible then J.bb.Position=UDim2.fromOffset(math.floor(U.X),math.floor(U.Y));end;elseif J.bb.Visible then J.bb.Visible=false;end;end;end);local X={};local function J()X={};local U,q=ipairs,t[18](f:GetPlayers());for b,b in U(t:Fh(q))do if b~=H then table.insert(X,b);end;end;end;J();S=X;for t,t in ipairs(S)do task.spawn(T,t);end;w.connect(f.PlayerAdded,function(t)if t~=H then table.insert(X,t);end;end);w.connect(f.PlayerRemoving,function(t)local f=#X;for S=f,1,-1 do if X[S]==t then table.remove(X,S);break end;end;end);local t,f,S=0,0;local H,J=0;J=w.connect(R.Heartbeat,function(w)if _isShuttingDown()or E~=_G._FH_GAMMA_GEN then if J then J:Disconnect();end;return;end;H = H + w;t = t + w;f = f + w;w=H;if w<(isMobile and 0.18 or 0.1)then return;end;H=0;w=_sharedFlowSeq;local R=w~=S;if R then S=w;end;local E,S,H=tick(),t>=2,f>=0.1;if S then t=0;end;if H then f=0;end;local t,f=_.enabled,#X;for J=1,f,1 do local f=X[J];J=f.Character;local X=J and(J:FindFirstChild("Head"));if t and J and X then local t=J:FindFirstChildOfClass("Humanoid");if t then if l[t]==nil then l[t]=t.DisplayDistanceType;end;if t.DisplayDistanceType~=Enum.HumanoidDisplayDistanceType.None then t.DisplayDistanceType=Enum.HumanoidDisplayDistanceType.None;end;end;t=T(f);if t.hl.Adornee~=J then t.hl.Adornee=J;end;if not(t.hl.Enabled)then t.hl.FillColor=Color3.fromRGB(126,155,235);t.hl.Enabled=true;end;t.adornee=X;t.active=true;if S or not t.initialized then t.initialized=true;t.hasAdmin,t.hasCarpet,t.hasFlash=i(f);t.flashIcon.Visible=t.hasFlash;t.lastAttrCheck=E;t.cachedRebirths=C(f);local C=P(f);if t.lbl.Text~=C then t.lbl.Text=C;end;if t.cachedRebirths~=nil then tostring(t.cachedRebirths);end;C=t.hasAdmin;if t.apIcon.Visible~=C then t.apIcon.Visible=C;end;C=t.hasCarpet;if t.fcIcon.Visible~=C then t.fcIcon.Visible=C;end;end;if H then local C,E,S=J:FindFirstChildWhichIsA("Humanoid"),{"ragdoll","ragdolled","Ragdoll","Ragdolled","isRagdolled","IsRagdolled","isRagdoll","IsRagdoll"},false;for H,l in ipairs(E)do H=f:GetAttribute(l);if H==nil and J then H=J:GetAttribute(l) end;if H~=nil and H~=false and H~=0 then S=true;break end;end;if t.infoLbl.Text~=""then t.infoLbl.Text="";end;I(C);f:GetAttribute("Stealing");if t.cachedRebirths~=nil then tostring(t.cachedRebirths);end;C=t.currentTool or"";if t.eqLbl.Text~=C then t.eqLbl.Text=C;end;E=tostring(t.currentTool~=nil)..tostring(t.toolImage.Visible)..tostring(t.apIcon.Visible)..tostring(t.fcIcon.Visible)..tostring(t.flashIcon.Visible);if t.layoutKey~=E then t.layoutKey=E;local C,E,S={},ipairs,{t.toolImage,t.apIcon,t.fcIcon,t.flashIcon};for H,H in E(S)do if H.Visible then C[#C+1]=H;end;end;E=#C*32+math.max(0,#C-1)*6;S=(380-(E+(t.currentTool and 232 or 0)))/2;t.eqLbl.Position=UDim2.fromOffset(S+E+12,28);for E,E in ipairs(C)do E.Position=UDim2.fromOffset(S,28);S = S + 38;end;end;end;if R then if w then t.grad.Color=w;end;end;elseif g[f]then local t=g[f];if t.hl.Enabled then t.hl.Enabled=false;end;t.active=false;if t.bb.Visible then t.bb.Visible=false;end;end;end;end);end);end);return _;end;end;end
 
-            for _, plr in ipairs(Players:GetPlayers()) do
-                if plr ~= LocalPlayer then
-                    local connChar = plr.CharacterAdded:Connect(function(char)
-                        task.wait(0.4)
-                        if M.enabled then applyESP(plr, char) end
-                    end)
-                    table.insert(connections, connChar)
-                    if plr.Character then
-                        applyESP(plr, plr.Character)
-                    end
+
+        local espInstance = PROTO[14741](REF, REF, REF, REF, REF, REF)({
+            C_manager,
+            cloneref or function(o) return o end,
+            ESPF,
+            RunService,
+            _G._FH_GAMMA_GEN
+        })()
+
+        table.insert(_G._FH_TEARDOWN, function()
+            pcall(function()
+                C_manager.alive = false
+                if espInstance and espInstance.set then espInstance.set(false) end
+                for _, cl in ipairs(C_manager.cleanups) do
+                    pcall(cl)
                 end
-            end
-
-            local connAdd = Players.PlayerAdded:Connect(function(plr)
-                if plr == LocalPlayer then return end
-                local connChar = plr.CharacterAdded:Connect(function(char)
-                    task.wait(0.4)
-                    if M.enabled then applyESP(plr, char) end
-                end)
-                table.insert(connections, connChar)
-                if plr.Character then
-                    applyESP(plr, plr.Character)
+                if ESPF and ESPF.Parent then
+                    ESPF:Destroy()
                 end
             end)
-            table.insert(connections, connAdd)
+        end)
 
-            local connRemove = Players.PlayerRemoving:Connect(function(plr)
-                if plr.Character then
-                    cleanupCharacter(plr.Character)
-                end
-            end)
-            table.insert(connections, connRemove)
-
-            refreshThread = task.spawn(function()
-                while M.enabled do
-                    task.wait(1.0)
-                    if not M.enabled then break end
-                    for _, plr in ipairs(Players:GetPlayers()) do
-                        if plr ~= LocalPlayer and plr.Character then
-                            local hasHL = false
-                            for _, c in ipairs(plr.Character:GetChildren()) do
-                                if c:IsA("Highlight") and (c.Name == "ESP_KIRO" or c.Name == "ESP_VIOLET") then
-                                    hasHL = true
-                                    break
-                                end
-                            end
-                            if not hasHL then
-                                pcall(applyESP, plr, plr.Character)
-                            end
-                        end
-                    end
-                end
-            end)
-        end
-
-        function M.set(on)
-            M.enabled = on and true or false
-            if on then
-                enableESP()
-            else
-                disableESP()
-            end
-        end
-
-        function M.isEnabled()
-            return M.enabled
-        end
-
-        function M.applyTheme(p, s)
-            p = p or themePrimary()
-            for _, hl in ipairs(espHighlights) do
-                if hl and hl.Parent then
-                    pcall(function()
-                        hl.FillColor = p
-                        hl.OutlineColor = Color3.new(p.R * 0.45, p.G * 0.45, p.B * 0.45)
-                    end)
-                end
-            end
-            for bb, _ in pairs(espBillboards) do
-                if bb and bb.Parent then
-                    pcall(function()
-                        for _, d in ipairs(bb:GetDescendants()) do
-                            if d:IsA("TextLabel") then
-                                d.TextColor3 = p
-                            end
-                        end
-                    end)
-                end
-            end
-        end
-
-        return M
+        return espInstance
     end)()
     table.insert(_G._FH_TEARDOWN, function()
         pcall(function()
@@ -14823,7 +14902,7 @@ end)()
 
         local function isHubForce(obj)
             if not obj then return false end
-            -- Never strip forces belonging to flying tools (carpet, broom, wings…)
+            -- Never strip forces belonging to flying tools (carpet, broom, wings&)
             if isFlightToolRelated(obj) then return true end
             pcall(function()
                 if Booster then
@@ -15413,11 +15492,11 @@ end)()
             LocalPlayer = Players.PlayerAdded:Wait()
         end
 
-        local savedSpd, savedJmp = 28, 50
+        local savedSpd, savedJmp = 32.7, 61
         pcall(function()
             if Config then
-                savedSpd = tonumber(Config.get("booster_spd", 28)) or 28
-                savedJmp = tonumber(Config.get("booster_jmp", 50)) or 50
+                savedSpd = tonumber(Config.get("booster_spd", 32.7)) or 32.7
+                savedJmp = tonumber(Config.get("booster_jmp", 61)) or 61
             end
         end)
 
@@ -15425,7 +15504,7 @@ end)()
             enabled = false,
             userEnabled = false,
             speed = math.clamp(savedSpd, 16, 200),
-            jump = math.clamp(savedJmp, 50, 100),
+            jump = math.clamp(savedJmp, 50, 150),
             _velocity = nil,
             _attachment = nil,
             _jumpConn = nil,
@@ -15619,7 +15698,7 @@ end)()
 
         function B.setJump(value)
             value = tonumber(value) or B.jump
-            B.jump = math.clamp(value, 50, 100)
+            B.jump = math.clamp(value, 50, 150)
             pcall(function()
                 if Config then Config.set("booster_jmp", B.jump) end
             end)
@@ -15644,6 +15723,450 @@ end)()
         getfenv()["Booster"] = Booster
     end)
     rawset(_G, "Booster", Booster)
+
+    -- ============================================================
+    -- DELIVERY ESP & AUTO SPEED MODULATION
+    -- ============================================================
+    _G.DeliveryESP = (function()
+        local Players = game:GetService("Players")
+        local RunService = game:GetService("RunService")
+        local LP = Players.LocalPlayer or Players.PlayerAdded:Wait()
+
+        local M = {
+            enabled = false,
+            _espInstances = {},
+            _heartbeatConn = nil,
+            _scanTimer = 0,
+            _suspendedByZone = false,
+        }
+
+        local function getBoosterModule()
+            return rawget(_G, "Booster") or (type(Booster) == "table" and Booster) or nil
+        end
+
+        local function getPlotOwner(plot)
+            if not plot or not plot:IsA("Model") then return nil end
+            local sign = plot:FindFirstChild("PlotSign")
+            if not sign then return nil end
+
+            local yb = sign:FindFirstChild("YourBase")
+            if yb and yb:IsA("BillboardGui") and yb.Enabled then
+                return LP.DisplayName or LP.Name
+            end
+
+            local lbl = (sign:FindFirstChild("SurfaceGui") and sign.SurfaceGui:FindFirstChild("Frame") and sign.SurfaceGui.Frame:FindFirstChild("TextLabel"))
+                or sign:FindFirstChildWhichIsA("TextLabel", true)
+
+            if not lbl or not lbl.Text or lbl.Text == "" then
+                return nil
+            end
+
+            local raw = tostring(lbl.Text):gsub("^%s+", ""):gsub("%s+$", "")
+            local low = raw:lower()
+            if low == "empty base" or low == "empty" or low == "nobody" or low == "unclaimed" or low == "free" or low == "none" or low == "" then
+                return nil
+            end
+
+            local clean = raw:gsub("'s Base$", ""):gsub("'s base$", ""):gsub("^[Bb]ase de%s*", ""):gsub("%s+$", "")
+            if clean == "" or clean:lower() == "empty base" or clean:lower() == "empty" then
+                return nil
+            end
+
+            return clean
+        end
+
+        local function findPlotDeliveryPart(plot)
+            if not plot then return nil end
+            local hb = plot:FindFirstChild("StealHitbox", true)
+            if hb and hb:IsA("BasePart") then return hb end
+
+            local d = plot:FindFirstChild("DeliveryZone", true) or plot:FindFirstChild("Delivery", true)
+            if d and d:IsA("BasePart") then return d end
+
+            for _, desc in ipairs(plot:GetDescendants()) do
+                if desc:IsA("BasePart") then
+                    local n = desc.Name:lower()
+                    if n == "stealhitbox" or n:find("delivery") then
+                        return desc
+                    end
+                end
+            end
+
+            local pb = plot:FindFirstChild("Purchases")
+            local block = pb and pb:FindFirstChild("PlotBlock")
+            local main = block and block:FindFirstChild("Main")
+            if main and main:IsA("BasePart") then
+                return main
+            end
+            return nil
+        end
+
+        local function findPlotSignPart(plot)
+            if not plot then return nil end
+            local sign = plot:FindFirstChild("PlotSign")
+            if not sign then return nil end
+            if sign:IsA("BasePart") then return sign end
+            if sign:IsA("Model") then
+                return sign.PrimaryPart or sign:FindFirstChildWhichIsA("BasePart", true)
+            end
+            return nil
+        end
+
+        local function findPlotCollectPart(plot)
+            if not plot then return nil end
+            local candidates = {
+                "collector", "collect", "cashcollector", "moneycollector",
+                "collectcash", "collectmoney", "cashpad", "collectpad", "threshold"
+            }
+            for _, name in ipairs(candidates) do
+                local p = plot:FindFirstChild(name, true)
+                if p and p:IsA("BasePart") then return p end
+                if p and p:IsA("Model") then
+                    local bp = p.PrimaryPart or p:FindFirstChildWhichIsA("BasePart", true)
+                    if bp then return bp end
+                end
+            end
+            for _, d in ipairs(plot:GetDescendants()) do
+                if d:IsA("BasePart") then
+                    local n = d.Name:lower()
+                    if n:find("collect") or n:find("cashpad") or n:find("collector") then
+                        return d
+                    end
+                end
+            end
+            return nil
+        end
+
+        local function computeDeliveryBoxGeometry(plot)
+            local deliveryPart = findPlotDeliveryPart(plot)
+            local signPart = findPlotSignPart(plot)
+            local collectPart = findPlotCollectPart(plot)
+
+            local baseCenter, forwardDir, rightDir, upDir
+            local baseWidth, baseDepth
+            local groundY = nil
+
+            if deliveryPart then
+                baseCenter = deliveryPart.Position
+                groundY = deliveryPart.Position.Y - (deliveryPart.Size.Y * 0.5)
+                baseWidth = math.max(deliveryPart.Size.X, deliveryPart.Size.Z)
+                baseDepth = math.min(deliveryPart.Size.X, deliveryPart.Size.Z)
+                forwardDir = deliveryPart.CFrame.LookVector
+            else
+                local ok, cf, sz = pcall(function() return plot:GetBoundingBox() end)
+                if ok and cf and sz then
+                    baseCenter = cf.Position
+                    groundY = cf.Position.Y - (sz.Y * 0.5)
+                    baseWidth = sz.X
+                    baseDepth = sz.Z
+                    forwardDir = cf.LookVector
+                else
+                    return nil
+                end
+            end
+
+            -- Ensure forwardDir points towards front entrance / PlotSign
+            if signPart then
+                local toSign = (signPart.Position - baseCenter)
+                local dot = toSign:Dot(forwardDir)
+                if dot < 0 then
+                    forwardDir = -forwardDir
+                end
+            end
+
+            -- Flatten forwardDir to horizontal ground plane
+            forwardDir = Vector3.new(forwardDir.X, 0, forwardDir.Z)
+            if forwardDir.Magnitude > 0.01 then
+                forwardDir = forwardDir.Unit
+            else
+                forwardDir = Vector3.new(0, 0, -1)
+            end
+            rightDir = Vector3.new(-forwardDir.Z, 0, forwardDir.X).Unit
+            upDir = Vector3.new(0, 1, 0)
+
+            -- 1. Largeur: extends outside walls into grass (matches user photo)
+            local boxWidth = math.max(baseWidth + 8, 38)
+
+            -- 2. Hauteur: from ground floor up to roof / PlotSign height
+            local boxHeight = 15.5
+            if groundY == nil then groundY = baseCenter.Y - 2 end
+
+            -- 3. Ressort de la base en profondeur jusque la zone collect
+            local backDist = math.max(baseDepth * 0.5 + 2.5, 14.5)
+            local frontDist = nil
+            if collectPart then
+                local d = (collectPart.Position - baseCenter):Dot(forwardDir)
+                local extra = (collectPart.Size.Z * 0.5) + 2.5
+                frontDist = math.max(d + extra, 23)
+            elseif signPart then
+                local signDist = (signPart.Position - baseCenter):Dot(forwardDir)
+                frontDist = math.max(signDist + 10.5, 23)
+            else
+                frontDist = math.max(baseDepth * 0.5 + 13, 23)
+            end
+
+            local boxDepth = backDist + frontDist
+            local forwardOffset = (frontDist - backDist) * 0.5
+            local centerPos = baseCenter + (forwardDir * forwardOffset)
+            centerPos = Vector3.new(centerPos.X, groundY + (boxHeight * 0.5), centerPos.Z)
+
+            local boxCFrame = CFrame.fromMatrix(centerPos, rightDir, upDir, -forwardDir)
+            local boxSize = Vector3.new(boxWidth, boxHeight, boxDepth)
+
+            return boxCFrame, boxSize, signPart
+        end
+
+        local function isCharacterInZone(char, zonePart)
+            if not char or not zonePart or not zonePart.Parent then return false end
+            local hrp = char:FindFirstChild("HumanoidRootPart")
+            if not hrp then return false end
+            local rel = zonePart.CFrame:PointToObjectSpace(hrp.Position)
+            local size = zonePart.Size
+            local hx = size.X * 0.5 + 0.5
+            local hz = size.Z * 0.5 + 0.5
+            local hy = size.Y * 0.5 + 4
+            return math.abs(rel.X) <= hx and math.abs(rel.Z) <= hz and math.abs(rel.Y) <= hy
+        end
+
+        local function createEspForPlot(plot, owner)
+            local boxCFrame, boxSize, signPart = computeDeliveryBoxGeometry(plot)
+            if not boxCFrame or not boxSize then return nil end
+
+            local existing = M._espInstances[plot]
+            if existing then
+                if existing.box then pcall(function() existing.box:Destroy() end) end
+                if existing.billboard then pcall(function() existing.billboard:Destroy() end) end
+                if existing.zonePart then pcall(function() existing.zonePart:Destroy() end) end
+            end
+
+            local zonePart = Instance.new("Part")
+            zonePart.Name = "KiroDeliveryZoneBox"
+            zonePart.Anchored = true
+            zonePart.CanCollide = false
+            zonePart.CanTouch = false
+            zonePart.CanQuery = false
+            zonePart.CastShadow = false
+            zonePart.Transparency = 1
+            zonePart.Material = Enum.Material.SmoothPlastic
+            zonePart.Size = boxSize
+            zonePart.CFrame = boxCFrame
+            zonePart.Parent = plot
+
+            local box = Instance.new("SelectionBox")
+            box.Name = "KiroDeliveryESP_Box"
+            box.Adornee = zonePart
+            box.Color3 = Color3.fromRGB(255, 135, 25)
+            box.LineThickness = 0.05
+            box.SurfaceColor3 = Color3.fromRGB(255, 135, 25)
+            box.SurfaceTransparency = 0.90
+            box.Parent = zonePart
+
+            local billboard = Instance.new("BillboardGui")
+            billboard.Name = "KiroDeliveryESP_Billboard"
+            billboard.Size = UDim2.new(0, 260, 0, 50)
+            billboard.AlwaysOnTop = true
+            billboard.LightInfluence = 0
+            billboard.MaxDistance = 900
+
+            if signPart then
+                billboard.Adornee = signPart
+                billboard.StudsOffset = Vector3.new(0, 3.2, 0)
+                billboard.Parent = signPart
+            else
+                billboard.Adornee = zonePart
+                billboard.StudsOffset = Vector3.new(0, (boxSize.Y * 0.5) + 2.5, 0)
+                billboard.Parent = zonePart
+            end
+
+            local container = Instance.new("Frame")
+            container.Size = UDim2.new(1, 0, 1, 0)
+            container.BackgroundTransparency = 1
+            container.Parent = billboard
+
+            local deliveryLbl = Instance.new("TextLabel")
+            deliveryLbl.Name = "DeliveryTitle"
+            deliveryLbl.Size = UDim2.new(1, 0, 0, 24)
+            deliveryLbl.Position = UDim2.new(0, 0, 0, 0)
+            deliveryLbl.BackgroundTransparency = 1
+            deliveryLbl.Text = "Delivery Kiro"
+            deliveryLbl.TextColor3 = Color3.fromRGB(255, 135, 25)
+            deliveryLbl.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
+            deliveryLbl.TextStrokeTransparency = 0
+            deliveryLbl.Font = Enum.Font.GothamBold
+            deliveryLbl.TextSize = 22
+            deliveryLbl.Parent = container
+
+            local ownerLbl = Instance.new("TextLabel")
+            ownerLbl.Name = "OwnerTitle"
+            ownerLbl.Size = UDim2.new(1, 0, 0, 20)
+            ownerLbl.Position = UDim2.new(0, 0, 0, 22)
+            ownerLbl.BackgroundTransparency = 1
+            ownerLbl.Text = "Base de " .. tostring(owner)
+            ownerLbl.TextColor3 = Color3.fromRGB(255, 255, 255)
+            ownerLbl.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
+            ownerLbl.TextStrokeTransparency = 0
+            ownerLbl.Font = Enum.Font.GothamBold
+            ownerLbl.TextSize = 17
+            ownerLbl.Parent = container
+
+            local entry = {
+                plot = plot,
+                owner = owner,
+                zonePart = zonePart,
+                box = box,
+                billboard = billboard,
+                ownerLabel = ownerLbl,
+            }
+            M._espInstances[plot] = entry
+            return entry
+        end
+
+        local function removeEspForPlot(plot)
+            local entry = M._espInstances[plot]
+            if entry then
+                if entry.box then pcall(function() entry.box:Destroy() end) end
+                if entry.billboard then pcall(function() entry.billboard:Destroy() end) end
+                if entry.zonePart then pcall(function() entry.zonePart:Destroy() end) end
+                M._espInstances[plot] = nil
+            end
+        end
+
+        local function scanPlots()
+            if not M.enabled then return end
+            local plotsFolder = workspace:FindFirstChild("Plots")
+            if not plotsFolder then return end
+
+            local activePlots = {}
+            for _, plot in ipairs(plotsFolder:GetChildren()) do
+                if plot:IsA("Model") then
+                    activePlots[plot] = true
+                    local owner = getPlotOwner(plot)
+                    if owner then
+                        local entry = M._espInstances[plot]
+                        if not entry or not entry.zonePart or not entry.zonePart.Parent or not entry.box or not entry.box.Parent or not entry.billboard or not entry.billboard.Parent then
+                            createEspForPlot(plot, owner)
+                        else
+                            local boxCFrame, boxSize = computeDeliveryBoxGeometry(plot)
+                            if boxCFrame and boxSize and entry.zonePart and entry.zonePart.Parent then
+                                entry.zonePart.CFrame = boxCFrame
+                                entry.zonePart.Size = boxSize
+                            end
+                            if entry.owner ~= owner then
+                                entry.owner = owner
+                                if entry.ownerLabel then
+                                    entry.ownerLabel.Text = "Base de " .. tostring(owner)
+                                end
+                            end
+                        end
+                    else
+                        if M._espInstances[plot] then
+                            removeEspForPlot(plot)
+                        end
+                    end
+                end
+            end
+
+            for plot in pairs(M._espInstances) do
+                if not activePlots[plot] or not plot.Parent then
+                    removeEspForPlot(plot)
+                end
+            end
+        end
+
+        function M.start()
+            if M._heartbeatConn then return end
+            M.enabled = true
+            M._suspendedByZone = false
+            scanPlots()
+
+            M._heartbeatConn = RunService.Heartbeat:Connect(function(dt)
+                if not M.enabled then return end
+
+                M._scanTimer = M._scanTimer + dt
+                if M._scanTimer >= 1.5 then
+                    M._scanTimer = 0
+                    scanPlots()
+                end
+
+                local char = LP.Character
+                local hrp = char and char:FindFirstChild("HumanoidRootPart")
+                local inAnyZone = false
+
+                if hrp then
+                    for plot, entry in pairs(M._espInstances) do
+                        if entry and entry.zonePart and entry.zonePart.Parent then
+                            if isCharacterInZone(char, entry.zonePart) then
+                                inAnyZone = true
+                                break
+                            end
+                        end
+                    end
+                end
+
+                if inAnyZone then
+                    if not M._suspendedByZone then
+                        M._suspendedByZone = true
+                        local B = getBoosterModule()
+                        if B and B.suspend then
+                            pcall(function() B.suspend("delivery_zone") end)
+                        end
+                    end
+                else
+                    if M._suspendedByZone then
+                        M._suspendedByZone = false
+                        local B = getBoosterModule()
+                        if B and B.unsuspend then
+                            pcall(function() B.unsuspend("delivery_zone") end)
+                        end
+                    end
+                end
+            end)
+        end
+
+        function M.stop()
+            M.enabled = false
+            if M._heartbeatConn then
+                pcall(function() M._heartbeatConn:Disconnect() end)
+                M._heartbeatConn = nil
+            end
+            for plot, entry in pairs(M._espInstances) do
+                if entry.box then pcall(function() entry.box:Destroy() end) end
+                if entry.billboard then pcall(function() entry.billboard:Destroy() end) end
+                if entry.zonePart then pcall(function() entry.zonePart:Destroy() end) end
+            end
+            table.clear(M._espInstances)
+
+            if M._suspendedByZone then
+                M._suspendedByZone = false
+                local B = getBoosterModule()
+                if B and B.unsuspend then
+                    pcall(function() B.unsuspend("delivery_zone") end)
+                end
+            end
+        end
+
+        function M.set(state)
+            state = state and true or false
+            if state == M.enabled then return end
+            if state then
+                M.start()
+            else
+                M.stop()
+            end
+        end
+
+        function M.isEnabled()
+            return M.enabled
+        end
+
+        table.insert(_G._FH_TEARDOWN, function()
+            pcall(function()
+                if M.set then M.set(false) end
+            end)
+        end)
+
+        return M
+    end)()
 
     _G.coreSelectedCarpet = _G.coreSelectedCarpet or "Flying Carpet"
     _G.carpetSpeedEnabled = false
@@ -16046,14 +16569,14 @@ end)()
 
         local M = {
             enabled = false, gui = nil, panel = nil, scroll = nil,
-            content = nil, minBtn = nil, minimized = false,
+            content = nil, minBtn = nil, closeBtn = nil, minimized = false,
             conns = {}, cdUntil = {},
             themeNodes = {},
         }
 
         local function colPrimary()
             if Theme and typeof(Theme.c1) == "Color3" then return Theme.c1 end
-            return Color3.fromRGB(168, 85, 247)
+            return Color3.fromRGB(235, 45, 55)
         end
         local function colBg()
             if T and typeof(T.Bg) == "Color3" then return T.Bg end
@@ -16226,6 +16749,9 @@ end)()
             end
             if tn.minBtn then
                 pcall(function() tn.minBtn.BackgroundColor3 = colSoft() end)
+            end
+            if tn.closeBtn then
+                pcall(function() tn.closeBtn.BackgroundColor3 = colSoft() end)
             end
             if tn.strokeGrad then
                 pcall(function()
@@ -16454,7 +16980,7 @@ end)()
             }, panel)
             n("UICorner", { CornerRadius = UDim.new(0, 12) }, title)
             n("TextLabel", {
-                Size = UDim2.new(1, -36, 1, 0),
+                Size = UDim2.new(1, -56, 1, 0),
                 Position = UDim2.new(0, 10, 0, 0),
                 BackgroundTransparency = 1,
                 Text = "Quick Admin",
@@ -16464,12 +16990,51 @@ end)()
                 TextXAlignment = Enum.TextXAlignment.Left,
             }, title)
 
-            local minBtn = n("TextButton", {
-                Name = "Min",
+            local closeBtn = n("TextButton", {
+                Name = "Close",
                 Size = UDim2.fromOffset(20, 20),
                 Position = UDim2.new(1, -24, 0.5, -10),
                 BackgroundColor3 = colSoft(),
-                Text = "–",
+                Text = "×",
+                TextColor3 = colText(),
+                TextSize = 14,
+                Font = Enum.Font.GothamBold,
+                AutoButtonColor = false,
+            }, title)
+            n("UICorner", { CornerRadius = UDim.new(1, 0) }, closeBtn)
+            M.closeBtn = closeBtn
+
+            closeBtn.MouseEnter:Connect(function()
+                closeBtn.BackgroundColor3 = Color3.fromRGB(215, 45, 55)
+                closeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+            end)
+            closeBtn.MouseLeave:Connect(function()
+                closeBtn.BackgroundColor3 = colSoft()
+                closeBtn.TextColor3 = colText()
+            end)
+            closeBtn.Activated:Connect(function()
+                M.set(false)
+                pcall(function()
+                    if _G._KiroSetToggleUI then
+                        _G._KiroSetToggleUI("Quick Admin Panel", false, true)
+                    end
+                end)
+            end)
+            closeBtn.MouseButton1Click:Connect(function()
+                M.set(false)
+                pcall(function()
+                    if _G._KiroSetToggleUI then
+                        _G._KiroSetToggleUI("Quick Admin Panel", false, true)
+                    end
+                end)
+            end)
+
+            local minBtn = n("TextButton", {
+                Name = "Min",
+                Size = UDim2.fromOffset(20, 20),
+                Position = UDim2.new(1, -48, 0.5, -10),
+                BackgroundColor3 = colSoft(),
+                Text = "-",
                 TextColor3 = colText(),
                 TextSize = 14,
                 Font = Enum.Font.GothamBold,
@@ -16514,7 +17079,7 @@ end)()
             }, scroll)
 
             M.themeNodes = {
-                panel = panel, title = title, minBtn = minBtn,
+                panel = panel, title = title, minBtn = minBtn, closeBtn = closeBtn,
                 strokeGrad = strokeGrad, primary = colPrimary(),
             }
 
@@ -16530,7 +17095,7 @@ end)()
                     panel.Size = UDim2.fromOffset(BASE_W, TITLE_H)
                     minBtn.Text = "+"
                 else
-                    minBtn.Text = "–"
+                    minBtn.Text = "-"
                     fitHeight(otherCount())
                 end
             end)
@@ -16648,7 +17213,7 @@ end)()
 
         pcall(function()
             if showToast then
-                showToast("Spam W" .. tostring(_G.coreSpamWave or 1) .. " → " .. target.Name, true)
+                showToast("Spam W" .. tostring(_G.coreSpamWave or 1) .. " ’ " .. target.Name, true)
             end
         end)
         pcall(function()
@@ -17053,7 +17618,7 @@ end)()
                 end
                 if setStatus then
                     setStatus(fired > 0
-                        and (fired .. " → " .. target.DisplayName)
+                        and (fired .. " ’ " .. target.DisplayName)
                         or "all on cooldown")
                 end
             end)
@@ -17068,7 +17633,7 @@ end)()
             red    = Color3.fromRGB(200, 70, 70),
             text   = Color3.fromRGB(255, 245, 240),
             dim    = Color3.fromRGB(190, 165, 155),
-            purple = Color3.fromRGB(255, 120, 0),
+            purple = Color3.fromRGB(235, 45, 55),
         }
 
         local function corner(inst, r)
@@ -17372,7 +17937,7 @@ end)()
         settingsFrame.ClipsDescendants = true
         settingsFrame.ScrollingDirection = Enum.ScrollingDirection.Y
         settingsFrame.ScrollBarThickness = 6
-        settingsFrame.ScrollBarImageColor3 = Color3.fromRGB(168, 85, 247)
+        settingsFrame.ScrollBarImageColor3 = Color3.fromRGB(235, 45, 55)
         settingsFrame.ScrollBarImageTransparency = 0.2
         settingsFrame.ElasticBehavior = Enum.ElasticBehavior.Always
         settingsFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
@@ -17547,7 +18112,7 @@ end)()
             minusBtn.Size = UDim2.new(0, 28, 1, 0)
             minusBtn.Position = UDim2.new(0, 0, 0, 0)
             minusBtn.BackgroundTransparency = 1
-            minusBtn.Text = "−"
+            minusBtn.Text = "-"
             minusBtn.Font = Enum.Font.GothamBold
             minusBtn.TextSize = 16
             minusBtn.TextColor3 = C.text
@@ -17817,7 +18382,7 @@ end)()
             end)
             settingsFrame.ZIndex = settingsOpen and 50 or 20
             settingsFrame.Active = true
-            gearBtn.Text = settingsOpen and "←" or "⚙"
+            gearBtn.Text = settingsOpen and "" or "™"
             hTitle.Text = settingsOpen and "Spam Settings" or "Admin Spammer"
             if settingsOpen then
                 buildSettings()
@@ -18031,11 +18596,11 @@ end)()
             grad = Instance.new("UIGradient")
             grad.Name = "UIGradient"
             grad.Color = ColorSequence.new({
-                ColorSequenceKeypoint.new(0.00, Color3.fromRGB(195, 45, 255)),
+                ColorSequenceKeypoint.new(0.00, Color3.fromRGB(235, 45, 55)),
                 ColorSequenceKeypoint.new(0.25, Color3.fromRGB(255, 120, 0)),
-                ColorSequenceKeypoint.new(0.50, Color3.fromRGB(225, 75, 255)),
+                ColorSequenceKeypoint.new(0.50, Color3.fromRGB(255, 60, 70)),
                 ColorSequenceKeypoint.new(0.75, Color3.fromRGB(255, 155, 25)),
-                ColorSequenceKeypoint.new(1.00, Color3.fromRGB(195, 45, 255)),
+                ColorSequenceKeypoint.new(1.00, Color3.fromRGB(235, 45, 55)),
             })
             grad.Offset = Vector2.new(0.5, 0)
             grad.Parent = label
@@ -18063,11 +18628,11 @@ end)()
         local function repaint()
             if grad and grad.Parent then
                 grad.Color = ColorSequence.new({
-                    ColorSequenceKeypoint.new(0.00, Color3.fromRGB(195, 45, 255)),
+                    ColorSequenceKeypoint.new(0.00, Color3.fromRGB(235, 45, 55)),
                     ColorSequenceKeypoint.new(0.25, Color3.fromRGB(255, 120, 0)),
-                    ColorSequenceKeypoint.new(0.50, Color3.fromRGB(225, 75, 255)),
+                    ColorSequenceKeypoint.new(0.50, Color3.fromRGB(255, 60, 70)),
                     ColorSequenceKeypoint.new(0.75, Color3.fromRGB(255, 155, 25)),
-                    ColorSequenceKeypoint.new(1.00, Color3.fromRGB(195, 45, 255)),
+                    ColorSequenceKeypoint.new(1.00, Color3.fromRGB(235, 45, 55)),
                 })
             end
             if label and label.Parent then
@@ -18330,7 +18895,7 @@ end)()
 
         local function colPrimary()
             if Theme and typeof(Theme.c1) == "Color3" then return Theme.c1 end
-            return Color3.fromRGB(168, 85, 247)
+            return Color3.fromRGB(235, 45, 55)
         end
         local function colBg()
             if T and typeof(T.Bg) == "Color3" then return T.Bg end
@@ -18394,6 +18959,9 @@ end)()
             end
             if M.themeNodes.minBtn then
                 pcall(function() M.themeNodes.minBtn.BackgroundColor3 = colSoft() end)
+            end
+            if M.themeNodes.closeBtn then
+                pcall(function() M.themeNodes.closeBtn.BackgroundColor3 = colSoft() end)
             end
             if M.themeNodes.strokeGrad then
                 pcall(function()
@@ -18547,7 +19115,7 @@ end)()
             }, title)
 
             n("TextLabel", {
-                Size = UDim2.new(1, -36, 1, 0),
+                Size = UDim2.new(1, -56, 1, 0),
                 Position = UDim2.new(0, 10, 0, 0),
                 BackgroundTransparency = 1,
                 Text = "Command Cooldowns",
@@ -18557,12 +19125,51 @@ end)()
                 TextXAlignment = Enum.TextXAlignment.Left,
             }, title)
 
-            local minBtn = n("TextButton", {
-                Name = "Min",
+            local closeBtn = n("TextButton", {
+                Name = "Close",
                 Size = UDim2.fromOffset(20, 20),
                 Position = UDim2.new(1, -24, 0.5, -10),
                 BackgroundColor3 = colSoft(),
-                Text = "–",
+                Text = "×",
+                TextColor3 = colText(),
+                TextSize = 14,
+                Font = Enum.Font.GothamBold,
+                AutoButtonColor = false,
+            }, title)
+            n("UICorner", { CornerRadius = UDim.new(1, 0) }, closeBtn)
+            M.closeBtn = closeBtn
+
+            closeBtn.MouseEnter:Connect(function()
+                closeBtn.BackgroundColor3 = Color3.fromRGB(215, 45, 55)
+                closeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+            end)
+            closeBtn.MouseLeave:Connect(function()
+                closeBtn.BackgroundColor3 = colSoft()
+                closeBtn.TextColor3 = colText()
+            end)
+            closeBtn.Activated:Connect(function()
+                M.setVisible(false)
+                pcall(function()
+                    if _G._KiroSetToggleUI then
+                        _G._KiroSetToggleUI("Command Cooldowns", false, true)
+                    end
+                end)
+            end)
+            closeBtn.MouseButton1Click:Connect(function()
+                M.setVisible(false)
+                pcall(function()
+                    if _G._KiroSetToggleUI then
+                        _G._KiroSetToggleUI("Command Cooldowns", false, true)
+                    end
+                end)
+            end)
+
+            local minBtn = n("TextButton", {
+                Name = "Min",
+                Size = UDim2.fromOffset(20, 20),
+                Position = UDim2.new(1, -48, 0.5, -10),
+                BackgroundColor3 = colSoft(),
+                Text = "-",
                 TextColor3 = colText(),
                 TextSize = 14,
                 Font = Enum.Font.GothamBold,
@@ -18631,6 +19238,7 @@ end)()
                 panel = panel,
                 title = title,
                 minBtn = minBtn,
+                closeBtn = closeBtn,
                 strokeGrad = strokeGrad,
             }
 
@@ -18653,7 +19261,7 @@ end)()
                     minBtn.Text = "+"
                 else
                     panel.Size = expandedSize
-                    minBtn.Text = "–"
+                    minBtn.Text = "-"
                 end
             end)
             minBtn.MouseButton1Click:Connect(function() end) -- keep path for some executors
@@ -18939,199 +19547,242 @@ end)()
         parentGui()
 
         local function colPrimary()
-            if Theme and typeof(Theme.c1) == "Color3" then return Theme.c1 end
-            return Color3.fromRGB(168, 85, 247)
+            return Color3.fromRGB(235, 45, 55)
         end
         local function colBg()
             if T and typeof(T.Bg) == "Color3" then return T.Bg end
-            return Color3.fromRGB(18, 16, 14)
-        end
-        local function colDeep()
-            if T and typeof(T.BgDeep) == "Color3" then return T.BgDeep end
-            return Color3.fromRGB(12, 10, 9)
+            return Color3.fromRGB(14, 12, 16)
         end
         local function colCard()
-            if T and typeof(T.Card) == "Color3" then return T.Card end
-            return Color3.fromRGB(28, 24, 20)
+            return Color3.fromRGB(18, 15, 20)
         end
         local function colText()
-            if T and typeof(T.Text) == "Color3" then return T.Text end
-            return Color3.fromRGB(250, 245, 235)
+            return Color3.fromRGB(255, 255, 255)
         end
-        local function colDim()
-            if T and typeof(T.TextDim) == "Color3" then return T.TextDim end
-            return Color3.fromRGB(160, 140, 120)
-        end
-        local function colSoft()
-            if T and typeof(T.Soft) == "Color3" then return T.Soft end
-            return Color3.fromRGB(34, 28, 22)
-        end
+
+        local PANEL_W = 226
+        local PANEL_H = 204
+        local TITLE_H = 36
 
         local mainFrame = Instance.new("Frame")
         mainFrame.Name = "Frame"
-        mainFrame.Size = UDim2.new(0, 200, 0, 132)
-        -- Position par défaut à gauche pour être visible dès l'activation
+        mainFrame.Size = UDim2.new(0, PANEL_W, 0, PANEL_H)
         mainFrame.Position = UDim2.new(0, 12, 0.35, 0)
         mainFrame.BackgroundColor3 = colBg()
-        mainFrame.BackgroundTransparency = 0.08
+        mainFrame.BackgroundTransparency = 0
         mainFrame.BorderSizePixel = 0
         mainFrame.Active = true
         mainFrame.ClipsDescendants = false
         mainFrame.Parent = screenGui
         do
             local c = Instance.new("UICorner")
-            c.CornerRadius = UDim.new(0, 12)
+            c.CornerRadius = UDim.new(0, 14)
             c.Parent = mainFrame
         end
+
         local stroke = Instance.new("UIStroke")
         stroke.Thickness = 1.2
         stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
-        stroke.Color = Color3.fromRGB(255, 255, 255)
+        stroke.Color = Color3.fromRGB(235, 45, 55)
+        stroke.Transparency = 0.25
         stroke.Parent = mainFrame
-        local grad = Instance.new("UIGradient")
-        grad.Color = ColorSequence.new({
-            ColorSequenceKeypoint.new(0, colPrimary()),
-            ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 255, 255)),
-        })
-        grad.Rotation = 200
-        grad.Parent = stroke
 
         pcall(function()
             if loadGuiPosition then loadGuiPosition("PanelGui_Booster", mainFrame) end
-            if loadGuiSize then loadGuiSize("PanelGui_Booster", mainFrame, 180, 110) end
         end)
 
         local titleBar = Instance.new("Frame")
         titleBar.Name = "TitleBar"
-        titleBar.Size = UDim2.new(1, 0, 0, 24)
-        titleBar.BackgroundColor3 = colDeep()
+        titleBar.Size = UDim2.new(1, 0, 0, TITLE_H)
+        titleBar.BackgroundTransparency = 1
         titleBar.BorderSizePixel = 0
         titleBar.Active = true
         titleBar.Parent = mainFrame
-        do
-            local c = Instance.new("UICorner")
-            c.CornerRadius = UDim.new(0, 12)
-            c.Parent = titleBar
-        end
-        local titleFill = Instance.new("Frame")
-        titleFill.Size = UDim2.new(1, 0, 0, 8)
-        titleFill.Position = UDim2.new(0, 0, 1, -8)
-        titleFill.BackgroundColor3 = colDeep()
-        titleFill.BorderSizePixel = 0
-        titleFill.Parent = titleBar
 
         pcall(function()
             local style = _G._KiroStyleLikeHub
             if style then style(mainFrame, titleBar) end
         end)
 
+        -- Left vertical accent bar matching photo
+        local titleAccent = Instance.new("Frame")
+        titleAccent.Name = "TitleAccent"
+        titleAccent.Size = UDim2.new(0, 4, 0, 18)
+        titleAccent.Position = UDim2.new(0, 12, 0.5, -9)
+        titleAccent.BackgroundColor3 = colPrimary()
+        titleAccent.BorderSizePixel = 0
+        titleAccent.ZIndex = 5
+        titleAccent.Parent = titleBar
+        do
+            local c = Instance.new("UICorner")
+            c.CornerRadius = UDim.new(1, 0)
+            c.Parent = titleAccent
+        end
+
         local titleLbl = Instance.new("TextLabel")
-        titleLbl.Size = UDim2.new(1, -32, 1, 0)
-        titleLbl.Position = UDim2.new(0, 8, 0, 0)
+        titleLbl.Size = UDim2.new(1, -86, 1, 0)
+        titleLbl.Position = UDim2.new(0, 24, 0, 0)
         titleLbl.BackgroundTransparency = 1
         titleLbl.Text = "Booster"
         titleLbl.TextColor3 = colText()
         titleLbl.Font = Enum.Font.GothamBold
-        titleLbl.TextSize = 12
+        titleLbl.TextSize = 14
         titleLbl.TextXAlignment = Enum.TextXAlignment.Left
+        titleLbl.TextYAlignment = Enum.TextYAlignment.Center
+        titleLbl.ZIndex = 5
         titleLbl.Parent = titleBar
 
+        -- Minimize button: rounded pill matching photo with soft slate blue color
+        local closeBtn = Instance.new("TextButton")
+        closeBtn.Name = "CloseBtn"
+        closeBtn.Size = UDim2.fromOffset(24, 22)
+        closeBtn.Position = UDim2.new(1, -28, 0.5, -11)
+        closeBtn.BackgroundColor3 = Color3.fromRGB(28, 24, 30)
+        closeBtn.Text = "×"
+        closeBtn.TextColor3 = Color3.fromRGB(220, 220, 230)
+        closeBtn.Font = Enum.Font.GothamBold
+        closeBtn.TextSize = 16
+        closeBtn.AutoButtonColor = false
+        closeBtn.ZIndex = 25
+        closeBtn.Active = true
+        closeBtn.Parent = titleBar
+        do
+            local c = Instance.new("UICorner")
+            c.CornerRadius = UDim.new(0, 7)
+            c.Parent = closeBtn
+        end
+        closeBtn.MouseEnter:Connect(function()
+            TweenService:Create(closeBtn, TweenInfo.new(0.15), {
+                BackgroundColor3 = Color3.fromRGB(215, 45, 55),
+                TextColor3 = Color3.fromRGB(255, 255, 255)
+            }):Play()
+        end)
+        closeBtn.MouseLeave:Connect(function()
+            TweenService:Create(closeBtn, TweenInfo.new(0.15), {
+                BackgroundColor3 = Color3.fromRGB(28, 24, 30),
+                TextColor3 = Color3.fromRGB(220, 220, 230)
+            }):Play()
+        end)
+        closeBtn.Activated:Connect(function()
+            screenGui.Enabled = false
+            pcall(function()
+                if Config then Config.set("booster_gui_visible", false) end
+                if _G._KiroSetToggleUI then _G._KiroSetToggleUI("Booster GUI", false, true) end
+            end)
+        end)
+
         local minBtn = Instance.new("TextButton")
-        minBtn.Size = UDim2.new(0, 18, 0, 18)
-        minBtn.Position = UDim2.new(1, -22, 0.5, -9)
-        minBtn.BackgroundColor3 = colSoft()
-        minBtn.Text = "–"
-        minBtn.TextColor3 = colText()
+        minBtn.Name = "MinBtn"
+        minBtn.Size = UDim2.fromOffset(24, 22)
+        minBtn.Position = UDim2.new(1, -56, 0.5, -11)
+        minBtn.BackgroundColor3 = Color3.fromRGB(140, 165, 190)
+        minBtn.Text = "-"
+        minBtn.TextColor3 = Color3.fromRGB(28, 32, 42)
         minBtn.Font = Enum.Font.GothamBold
-        minBtn.TextSize = 13
+        minBtn.TextSize = 15
         minBtn.AutoButtonColor = false
         minBtn.ZIndex = 25
         minBtn.Active = true
         minBtn.Parent = titleBar
         do
             local c = Instance.new("UICorner")
-            c.CornerRadius = UDim.new(1, 0)
+            c.CornerRadius = UDim.new(0, 7)
             c.Parent = minBtn
         end
 
+        minBtn.MouseEnter:Connect(function()
+            TweenService:Create(minBtn, TweenInfo.new(0.15), {
+                BackgroundColor3 = Color3.fromRGB(165, 190, 215)
+            }):Play()
+        end)
+        minBtn.MouseLeave:Connect(function()
+            TweenService:Create(minBtn, TweenInfo.new(0.15), {
+                BackgroundColor3 = Color3.fromRGB(140, 165, 190)
+            }):Play()
+        end)
+        minBtn.MouseLeave:Connect(function()
+            TweenService:Create(minBtn, TweenInfo.new(0.15), {
+                BackgroundColor3 = Color3.fromRGB(140, 165, 190)
+            }):Play()
+        end)
+
         local content = Instance.new("Frame")
         content.Name = "Content"
-        content.Size = UDim2.new(1, 0, 1, -24)
-        content.Position = UDim2.new(0, 0, 0, 24)
+        content.Size = UDim2.new(1, 0, 1, -TITLE_H)
+        content.Position = UDim2.new(0, 0, 0, TITLE_H)
         content.BackgroundTransparency = 1
+        content.ZIndex = 2
         content.Parent = mainFrame
         do
             local pad = Instance.new("UIPadding")
-            pad.PaddingTop = UDim.new(0, 4)
-            pad.PaddingLeft = UDim.new(0, 6)
-            pad.PaddingRight = UDim.new(0, 6)
-            pad.PaddingBottom = UDim.new(0, 4)
+            pad.PaddingTop = UDim.new(0, 2)
+            pad.PaddingLeft = UDim.new(0, 8)
+            pad.PaddingRight = UDim.new(0, 8)
+            pad.PaddingBottom = UDim.new(0, 8)
             pad.Parent = content
             local list = Instance.new("UIListLayout")
-            list.Padding = UDim.new(0, 3)
+            list.Padding = UDim.new(0, 6)
             list.SortOrder = Enum.SortOrder.LayoutOrder
             list.Parent = content
         end
 
+        -- ============================================================
+        -- 1. ROW 1: "Booster" Toggle Switch (Exact layout from photo)
+        -- ============================================================
         local toggleRow = Instance.new("Frame")
-        toggleRow.Size = UDim2.new(1, 0, 0, 32)
+        toggleRow.Name = "ToggleCard"
+        toggleRow.Size = UDim2.new(1, 0, 0, 42)
         toggleRow.BackgroundColor3 = colCard()
+        toggleRow.BackgroundTransparency = 0.2
         toggleRow.BorderSizePixel = 0
         toggleRow.LayoutOrder = 1
+        toggleRow.ZIndex = 3
         toggleRow.Parent = content
         do
             local c = Instance.new("UICorner")
             c.CornerRadius = UDim.new(0, 10)
             c.Parent = toggleRow
-        end
-        do
             local s = Instance.new("UIStroke")
             s.Thickness = 1
-            s.Color = Color3.fromRGB(255, 255, 255)
-            s.Transparency = 0.85
+            s.Color = Color3.fromRGB(60, 48, 40)
+            s.Transparency = 0.6
             s.Parent = toggleRow
         end
 
         local toggleLbl = Instance.new("TextLabel")
-        toggleLbl.Size = UDim2.new(1, -56, 1, 0)
-        toggleLbl.Position = UDim2.new(0, 10, 0, 0)
+        toggleLbl.Size = UDim2.new(1, -70, 1, 0)
+        toggleLbl.Position = UDim2.new(0, 12, 0, 0)
         toggleLbl.BackgroundTransparency = 1
         toggleLbl.Text = "Booster"
         toggleLbl.TextColor3 = colText()
         toggleLbl.Font = Enum.Font.GothamBold
-        toggleLbl.TextSize = 12
+        toggleLbl.TextSize = 13
         toggleLbl.TextXAlignment = Enum.TextXAlignment.Left
         toggleLbl.TextYAlignment = Enum.TextYAlignment.Center
-        toggleLbl.ZIndex = 2
+        toggleLbl.ZIndex = 4
         toggleLbl.Parent = toggleRow
 
         local pill = Instance.new("Frame")
-        pill.Name = "Toggle"
-        pill.Size = UDim2.new(0, 42, 0, 22)
-        pill.Position = UDim2.new(1, -50, 0.5, -11)
-        pill.BackgroundColor3 = Color3.fromRGB(30, 20, 48)
+        pill.Name = "TogglePill"
+        pill.Size = UDim2.fromOffset(46, 24)
+        pill.Position = UDim2.new(1, -56, 0.5, -12)
+        pill.BackgroundColor3 = Color3.fromRGB(32, 20, 24)
         pill.BorderSizePixel = 0
-        pill.ZIndex = 3
+        pill.ZIndex = 4
         pill.Parent = toggleRow
         do
             local c = Instance.new("UICorner")
             c.CornerRadius = UDim.new(1, 0)
             c.Parent = pill
         end
-        do
-            local s = Instance.new("UIStroke")
-            s.Thickness = 1.2
-            s.Color = Color3.fromRGB(0, 0, 0)
-            s.Transparency = 0.25
-            s.Parent = pill
-        end
 
         local activeFill = Instance.new("Frame")
+        activeFill.Name = "ActiveFill"
         activeFill.Size = UDim2.new(1, 0, 1, 0)
         activeFill.BackgroundColor3 = colPrimary()
         activeFill.BackgroundTransparency = 1
         activeFill.BorderSizePixel = 0
-        activeFill.ZIndex = 4
+        activeFill.ZIndex = 5
         activeFill.Parent = pill
         do
             local c = Instance.new("UICorner")
@@ -19140,22 +19791,21 @@ end)()
         end
 
         local knob = Instance.new("Frame")
-        knob.Size = UDim2.new(0, 16, 0, 16)
-        knob.Position = UDim2.new(0, 3, 0.5, -8)
-        knob.BackgroundColor3 = Color3.fromRGB(180, 160, 210)
+        knob.Name = "Knob"
+        knob.Size = UDim2.fromOffset(18, 18)
+        knob.Position = UDim2.new(0, 3, 0.5, -9)
+        knob.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
         knob.BorderSizePixel = 0
-        knob.ZIndex = 5
+        knob.ZIndex = 6
         knob.Parent = pill
         do
             local c = Instance.new("UICorner")
             c.CornerRadius = UDim.new(1, 0)
             c.Parent = knob
-        end
-        do
             local s = Instance.new("UIStroke")
             s.Thickness = 1
             s.Color = Color3.fromRGB(0, 0, 0)
-            s.Transparency = 0.65
+            s.Transparency = 0.75
             s.Parent = knob
         end
 
@@ -19164,24 +19814,22 @@ end)()
         toggleClick.BackgroundTransparency = 1
         toggleClick.Text = ""
         toggleClick.AutoButtonColor = false
-        toggleClick.ZIndex = 6
+        toggleClick.ZIndex = 7
         toggleClick.Parent = toggleRow
 
         local isOn = false
         local function updateToggle(animate)
-            local knobOn = UDim2.new(0, 23, 0.5, -8)
-            local knobOff = UDim2.new(0, 3, 0.5, -8)
+            local knobOn = UDim2.new(1, -21, 0.5, -9)
+            local knobOff = UDim2.new(0, 3, 0.5, -9)
             local targetPos = isOn and knobOn or knobOff
             local fillT = isOn and 0 or 1
-            local knobCol = isOn and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(180, 160, 210)
             activeFill.BackgroundColor3 = colPrimary()
             if animate then
                 TweenService:Create(activeFill, TweenInfo.new(0.18), { BackgroundTransparency = fillT }):Play()
-                TweenService:Create(knob, TweenInfo.new(0.18), { Position = targetPos, BackgroundColor3 = knobCol }):Play()
+                TweenService:Create(knob, TweenInfo.new(0.18), { Position = targetPos }):Play()
             else
                 activeFill.BackgroundTransparency = fillT
                 knob.Position = targetPos
-                knob.BackgroundColor3 = knobCol
             end
         end
 
@@ -19194,67 +19842,217 @@ end)()
             end)
         end)
 
-        local function makeField(order, label, defaultText, onCommit)
-            local row = Instance.new("Frame")
-            row.Size = UDim2.new(1, 0, 0, 22)
-            row.BackgroundTransparency = 1
-            row.LayoutOrder = order
-            row.Parent = content
-
-            local lbl = Instance.new("TextLabel")
-            lbl.Size = UDim2.new(0.52, -2, 1, 0)
-            lbl.Position = UDim2.new(0, 2, 0, 0)
-            lbl.BackgroundTransparency = 1
-            lbl.Text = label
-            lbl.TextColor3 = colText()
-            lbl.Font = Enum.Font.GothamBold
-            lbl.TextSize = 11
-            lbl.TextXAlignment = Enum.TextXAlignment.Left
-            lbl.Parent = row
-
-            local box = Instance.new("TextBox")
-            box.Size = UDim2.new(0.42, 0, 0, 18)
-            box.Position = UDim2.new(0.58, 0, 0.5, -9)
-            box.BackgroundColor3 = colDeep()
-            box.Text = defaultText
-            box.TextColor3 = colText()
-            box.PlaceholderColor3 = colDim()
-            box.Font = Enum.Font.GothamBold
-            box.TextSize = 11
-            box.ClearTextOnFocus = false
-            box.Parent = row
-            do
-                local c = Instance.new("UICorner")
-                c.CornerRadius = UDim.new(0, 12)
-                c.Parent = box
-                local s = Instance.new("UIStroke")
-                s.Color = colPrimary()
-                s.Thickness = 1
-                s.Transparency = 0.55
-                s.Parent = box
+        -- ============================================================
+        -- 2. HELPER: SLIDER CARD (Walk Speed & Jump Power)
+        -- ============================================================
+        local function formatNumber(val, isFloat)
+            if isFloat then
+                return string.format("%.1f", val)
+            else
+                return tostring(math.floor(val + 0.5))
             end
-            box.FocusLost:Connect(function()
-                onCommit(box)
-            end)
-            return box
         end
 
-        local wsBox = makeField(2, "Walk Speed", tostring(Booster.speed), function(box)
-            local val = tonumber(box.Text)
-            if val and Booster.setSpeed then
+        local function makeSliderCard(order, titleText, minVal, maxVal, initialVal, isFloat, onValueChange)
+            local card = Instance.new("Frame")
+            card.Name = titleText:gsub("%s+", "") .. "Card"
+            card.Size = UDim2.new(1, 0, 0, 52)
+            card.BackgroundColor3 = colCard()
+            card.BackgroundTransparency = 0.2
+            card.BorderSizePixel = 0
+            card.LayoutOrder = order
+            card.ZIndex = 3
+            card.Parent = content
+            do
+                local c = Instance.new("UICorner")
+                c.CornerRadius = UDim.new(0, 10)
+                c.Parent = card
+                local s = Instance.new("UIStroke")
+                s.Thickness = 1
+                s.Color = Color3.fromRGB(60, 48, 40)
+                s.Transparency = 0.6
+                s.Parent = card
+            end
+
+            -- Label (Top Left)
+            local lbl = Instance.new("TextLabel")
+            lbl.Size = UDim2.new(0.6, 0, 0, 18)
+            lbl.Position = UDim2.new(0, 12, 0, 6)
+            lbl.BackgroundTransparency = 1
+            lbl.Text = titleText
+            lbl.TextColor3 = Color3.fromRGB(245, 245, 245)
+            lbl.Font = Enum.Font.GothamBold
+            lbl.TextSize = 12
+            lbl.TextXAlignment = Enum.TextXAlignment.Left
+            lbl.TextYAlignment = Enum.TextYAlignment.Center
+            lbl.ZIndex = 4
+            lbl.Parent = card
+
+            -- Value Badge / Input (Top Right, rounded dark pill)
+            local valBox = Instance.new("TextBox")
+            valBox.Size = UDim2.fromOffset(50, 18)
+            valBox.Position = UDim2.new(1, -60, 0, 6)
+            valBox.BackgroundColor3 = Color3.fromRGB(8, 6, 10)
+            valBox.BorderSizePixel = 0
+            valBox.Text = formatNumber(initialVal, isFloat)
+            valBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+            valBox.Font = Enum.Font.GothamBold
+            valBox.TextSize = 12
+            valBox.TextXAlignment = Enum.TextXAlignment.Center
+            valBox.ClearTextOnFocus = false
+            valBox.ZIndex = 5
+            valBox.Parent = card
+            do
+                local c = Instance.new("UICorner")
+                c.CornerRadius = UDim.new(0, 6)
+                c.Parent = valBox
+            end
+
+            -- Track (Bottom)
+            local track = Instance.new("Frame")
+            track.Name = "Track"
+            track.Size = UDim2.new(1, -24, 0, 5)
+            track.Position = UDim2.new(0, 12, 0, 34)
+            track.BackgroundColor3 = Color3.fromRGB(115, 140, 160)
+            track.BorderSizePixel = 0
+            track.Active = false
+            track.ZIndex = 4
+            track.Parent = card
+            do
+                local c = Instance.new("UICorner")
+                c.CornerRadius = UDim.new(1, 0)
+                c.Parent = track
+            end
+
+            -- Fill (Active progress in orange theme)
+            local fill = Instance.new("Frame")
+            fill.Name = "Fill"
+            local initialRel = math.clamp((initialVal - minVal) / (maxVal - minVal), 0, 1)
+            fill.Size = UDim2.new(initialRel, 0, 1, 0)
+            fill.BackgroundColor3 = colPrimary()
+            fill.BorderSizePixel = 0
+            fill.Active = false
+            fill.ZIndex = 5
+            fill.Parent = track
+            do
+                local c = Instance.new("UICorner")
+                c.CornerRadius = UDim.new(1, 0)
+                c.Parent = fill
+            end
+
+            -- Knob (White round circle)
+            local knob = Instance.new("Frame")
+            knob.Name = "Knob"
+            knob.Size = UDim2.fromOffset(16, 16)
+            knob.Position = UDim2.new(initialRel, -8, 0.5, -8)
+            knob.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+            knob.BorderSizePixel = 0
+            knob.Active = false
+            knob.ZIndex = 6
+            knob.Parent = track
+            do
+                local c = Instance.new("UICorner")
+                c.CornerRadius = UDim.new(1, 0)
+                c.Parent = knob
+                local s = Instance.new("UIStroke")
+                s.Thickness = 1
+                s.Color = Color3.fromRGB(0, 0, 0)
+                s.Transparency = 0.65
+                s.Parent = knob
+            end
+
+            local curVal = initialVal
+
+            local function setVal(v, fireCallback)
+                v = math.clamp(v, minVal, maxVal)
+                if not isFloat then
+                    v = math.floor(v + 0.5)
+                else
+                    v = math.floor(v * 10 + 0.5) / 10
+                end
+                curVal = v
+                local rel = math.clamp((curVal - minVal) / (maxVal - minVal), 0, 1)
+                fill.Size = UDim2.new(rel, 0, 1, 0)
+                knob.Position = UDim2.new(rel, -8, 0.5, -8)
+                valBox.Text = formatNumber(curVal, isFloat)
+                if fireCallback and onValueChange then
+                    onValueChange(curVal)
+                end
+            end
+
+            -- Interactive drag button covering track region
+            local clickArea = Instance.new("TextButton")
+            clickArea.Name = "ClickArea"
+            clickArea.Size = UDim2.new(1, 0, 0, 26)
+            clickArea.Position = UDim2.new(0, 0, 0, 24)
+            clickArea.BackgroundTransparency = 1
+            clickArea.Text = ""
+            clickArea.AutoButtonColor = false
+            clickArea.ZIndex = 7
+            clickArea.Parent = card
+
+            local isDragging = false
+            local function updateDrag(input)
+                if not screenGui.Enabled or not card.Parent then
+                    isDragging = false
+                    return
+                end
+                local trackPos = track.AbsolutePosition.X
+                local trackW = track.AbsoluteSize.X
+                if trackW <= 0 then return end
+                local x = input.Position.X
+                local rel = math.clamp((x - trackPos) / trackW, 0, 1)
+                local v = minVal + (maxVal - minVal) * rel
+                setVal(v, true)
+            end
+
+            clickArea.InputBegan:Connect(function(input)
+                if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+                    isDragging = true
+                    updateDrag(input)
+                end
+            end)
+
+            UserInputService.InputChanged:Connect(function(input)
+                if isDragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+                    updateDrag(input)
+                end
+            end)
+
+            UserInputService.InputEnded:Connect(function(input)
+                if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+                    isDragging = false
+                end
+            end)
+
+            valBox.FocusLost:Connect(function()
+                local num = tonumber(valBox.Text)
+                if num then
+                    setVal(num, true)
+                else
+                    valBox.Text = formatNumber(curVal, isFloat)
+                end
+            end)
+
+            return {
+                card = card,
+                fill = fill,
+                setVal = setVal,
+                getVal = function() return curVal end,
+            }
+        end
+
+        -- Walk Speed Slider (range 16 to 150, default 32.7)
+        local wsSlider = makeSliderCard(2, "Walk Speed", 16, 150, Booster.speed or 32.7, true, function(val)
+            if Booster and Booster.setSpeed then
                 Booster.setSpeed(val)
-                box.Text = tostring(Booster.speed)
-            else
-                box.Text = tostring(Booster.speed)
             end
         end)
-        local jpBox = makeField(3, "Jump Power", tostring(Booster.jump), function(box)
-            local val = tonumber(box.Text)
-            if val and Booster.setJump then
+
+        -- Jump Power Slider (range 50 to 150, default 61)
+        local jpSlider = makeSliderCard(3, "Jump Power", 50, 150, Booster.jump or 61, false, function(val)
+            if Booster and Booster.setJump then
                 Booster.setJump(val)
-                box.Text = tostring(Booster.jump)
-            else
-                box.Text = tostring(Booster.jump)
             end
         end)
 
@@ -19264,41 +20062,34 @@ end)()
         end
 
         local minimized = false
-        local TITLE_H = 24
-        local expandedSize = mainFrame.Size
         minBtn.Activated:Connect(function()
             minimized = not minimized
             if minimized then
-                expandedSize = mainFrame.Size
                 content.Visible = false
                 mainFrame.ClipsDescendants = true
-                mainFrame.Size = UDim2.new(expandedSize.X.Scale, expandedSize.X.Offset, 0, TITLE_H)
+                mainFrame.Size = UDim2.new(0, PANEL_W, 0, TITLE_H)
                 minBtn.Text = "+"
             else
-                mainFrame.Size = expandedSize
+                mainFrame.Size = UDim2.new(0, PANEL_W, 0, PANEL_H)
                 content.Visible = true
                 mainFrame.ClipsDescendants = false
-                minBtn.Text = "–"
+                minBtn.Text = "-"
             end
         end)
 
         local function repaintPanel()
-            mainFrame.BackgroundColor3 = colBg()
-            titleBar.BackgroundColor3 = colDeep()
-            titleFill.BackgroundColor3 = colDeep()
-            titleLbl.TextColor3 = colText()
-            minBtn.BackgroundColor3 = colSoft()
-            minBtn.TextColor3 = colText()
-            toggleLbl.TextColor3 = colText()
+            pcall(function()
+                local style = _G._KiroStyleLikeHub
+                if style then style(mainFrame, titleBar) end
+            end)
+            titleAccent.BackgroundColor3 = colPrimary()
+            stroke.Color = colPrimary()
             if isOn then
                 activeFill.BackgroundColor3 = colPrimary()
                 activeFill.BackgroundTransparency = 0
             end
-            if toggleRow then toggleRow.BackgroundColor3 = colCard() end
-            grad.Color = ColorSequence.new({
-                ColorSequenceKeypoint.new(0, colPrimary()),
-                ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 255, 255)),
-            })
+            if wsSlider and wsSlider.fill then wsSlider.fill.BackgroundColor3 = colPrimary() end
+            if jpSlider and jpSlider.fill then jpSlider.fill.BackgroundColor3 = colPrimary() end
         end
 
         task.defer(function()
@@ -19319,7 +20110,6 @@ end)()
             setVisible = function(v)
                 v = v and true or false
                 if v then
-                    -- Toujours placer le panel à gauche à l'activation pour qu'il soit visible
                     mainFrame.Position = UDim2.new(0, 12, 0.35, 0)
                     mainFrame.AnchorPoint = Vector2.new(0, 0)
                     pcall(function()
@@ -19342,10 +20132,6 @@ end)()
             end,
             repaint = function()
                 repaintPanel()
-                pcall(function()
-                    local style = _G._KiroStyleLikeHub
-                    if style then style(mainFrame, titleBar) end
-                end)
             end,
             syncToggle = function(state)
                 isOn = state and true or false
@@ -19382,7 +20168,7 @@ end)()
 
         local function colPrimary()
             if Theme and typeof(Theme.c1) == "Color3" then return Theme.c1 end
-            return Color3.fromRGB(168, 85, 247)
+            return Color3.fromRGB(235, 45, 55)
         end
         local function colBg()
             if T and typeof(T.Bg) == "Color3" then return T.Bg end
@@ -19402,7 +20188,7 @@ end)()
         end
         local function colDim()
             if T and typeof(T.TextDim) == "Color3" then return T.TextDim end
-            return Color3.fromRGB(170, 150, 200)
+            return Color3.fromRGB(180, 175, 185)
         end
 
         local function bindToText(bind)
@@ -19414,7 +20200,7 @@ end)()
                 return name
             end
             local map = {
-                ButtonA = "A/X", ButtonB = "B/O", ButtonX = "X/□", ButtonY = "Y/△",
+                ButtonA = "A/X", ButtonB = "B/O", ButtonX = "X/¡", ButtonY = "Y/³",
                 ButtonL1 = "LB/L1", ButtonR1 = "RB/R1", ButtonL2 = "LT/L2", ButtonR2 = "RT/R2",
                 ButtonL3 = "L3", ButtonR3 = "R3", ButtonStart = "Start", ButtonSelect = "Select",
                 DPadUp = "D-Up", DPadDown = "D-Down", DPadLeft = "D-Left", DPadRight = "D-Right",
@@ -19777,7 +20563,7 @@ end)()
             fill.Parent = titleBar
 
             local title = Instance.new("TextLabel")
-            title.Size = UDim2.new(1, -40, 1, 0)
+            title.Size = UDim2.new(1, -56, 1, 0)
             title.Position = UDim2.new(0, 36, 0, 0)
             title.BackgroundTransparency = 1
             title.Text = "TP BRAINROT"
@@ -19812,7 +20598,7 @@ end)()
             minBtn.Size = UDim2.new(0, 22, 0, 22)
             minBtn.Position = UDim2.new(1, -28, 0, 6)
             minBtn.BackgroundColor3 = colCard()
-            minBtn.Text = "–"
+            minBtn.Text = "-"
             minBtn.TextColor3 = colText()
             minBtn.Font = Enum.Font.GothamBold
             minBtn.TextSize = 14
@@ -19822,7 +20608,7 @@ end)()
 
             local btn1 = makeBtn(main, "Base joueur", 44, colCard())
             local btn2 = makeBtn(main, "Pet joueur", 86, colCard())
-            local btn3 = makeBtn(main, "Auto Potion : OFF", 128, Color3.fromRGB(90, 40, 70))
+            local btn3 = makeBtn(main, "Auto Potion : OFF", 128, Color3.fromRGB(90, 30, 35))
             local btn4 = makeBtn(main, "TP [" .. bindToText(currentBind) .. "]", 170, colPrimary())
             refs.btn1, refs.btn2, refs.btn3, refs.btn4 = btn1, btn2, btn3, btn4
 
@@ -19842,7 +20628,7 @@ end)()
                     btn3.BackgroundColor3 = Color3.fromRGB(40, 120, 70)
                 else
                     btn3.Text = "Auto Potion : OFF"
-                    btn3.BackgroundColor3 = Color3.fromRGB(90, 40, 70)
+                    btn3.BackgroundColor3 = Color3.fromRGB(90, 30, 35)
                 end
                 pcall(function()
                     if Config then
@@ -19867,7 +20653,7 @@ end)()
                     btn3.Visible = true
                     main.Size = UDim2.new(0, 220, 0, 250)
                     btn4.Position = UDim2.new(0, 12, 0, 170)
-                    minBtn.Text = "–"
+                    minBtn.Text = "-"
                 end
                 savePos()
             end)
@@ -19888,7 +20674,7 @@ end)()
                 if hrp then
                     petPos = hrp.Position
                     if petMarker then pcall(function() petMarker:Destroy() end) end
-                    petMarker = createMarker(petPos, Color3.fromRGB(200, 120, 255))
+                    petMarker = createMarker(petPos, Color3.fromRGB(255, 65, 75))
                     btn2.Text = "Pet sauvegarde"
                     task.delay(0.8, function() if btn2 and btn2.Parent then btn2.Text = "Pet joueur" end end)
                 end
@@ -20017,7 +20803,7 @@ end)()
 
         local function colPrimary()
             if Theme and typeof(Theme.c1) == "Color3" then return Theme.c1 end
-            return Color3.fromRGB(168, 85, 247)
+            return Color3.fromRGB(235, 45, 55)
         end
         local function colBg()
             if T and typeof(T.Bg) == "Color3" then return T.Bg end
@@ -20029,7 +20815,7 @@ end)()
         end
         local function colDim()
             if T and typeof(T.TextDim) == "Color3" then return T.TextDim end
-            return Color3.fromRGB(170, 150, 200)
+            return Color3.fromRGB(180, 175, 185)
         end
 
         local function findTool(container, keywords)
@@ -20132,7 +20918,7 @@ end)()
                 return name
             end
             local map = {
-                ButtonA = "A/X", ButtonB = "B/O", ButtonX = "X/□", ButtonY = "Y/△",
+                ButtonA = "A/X", ButtonB = "B/O", ButtonX = "X/¡", ButtonY = "Y/³",
                 ButtonL1 = "LB/L1", ButtonR1 = "RB/R1", ButtonL2 = "LT/L2", ButtonR2 = "RT/R2",
                 ButtonL3 = "L3", ButtonR3 = "R3", ButtonStart = "Start", ButtonSelect = "Select",
                 DPadUp = "D-Up", DPadDown = "D-Down", DPadLeft = "D-Left", DPadRight = "D-Right",
@@ -20450,7 +21236,7 @@ end)()
                 if isSettingKeybind then return end
                 isSettingKeybind = true
                 if KeyLabel then KeyLabel.Text = "..." end
-                DropBtn.BackgroundColor3 = Color3.fromRGB(60, 50, 80)
+                DropBtn.BackgroundColor3 = Color3.fromRGB(80, 24, 28)
             end)
 
             loadPos()
@@ -21136,6 +21922,27 @@ end)()
             end
         end
     end)
+    Toggle(Main.scroll, "Delivery Esp", nil, function(state)
+        if _G.DeliveryESP and _G.DeliveryESP.set then
+            _G.DeliveryESP.set(state and true or false)
+        end
+    end)
+    task.defer(function()
+        pcall(function()
+            local want = false
+            if getToggleSaved then
+                want = getToggleSaved("Delivery Esp", false)
+            elseif Config then
+                want = Config.get("toggle:Delivery Esp", false) == true
+            end
+            if want then
+                if _G.DeliveryESP and _G.DeliveryESP.set then
+                    _G.DeliveryESP.set(true)
+                end
+                if setToggleUI then setToggleUI("Delivery Esp", true, true) end
+            end
+        end)
+    end)
     Toggle(Main.scroll, "Steal Target", nil, function(state)
         if _G.StealTarget and _G.StealTarget.set then
             _G.StealTarget.set(state and true or false)
@@ -21249,6 +22056,21 @@ end)()
     Toggle(Main.scroll, "Actions Panel Mobile", nil, function(state)
         if _G.ActionsPanelMobile and _G.ActionsPanelMobile.set then
             _G.ActionsPanelMobile.set(state and true or false)
+        end
+    end)
+    Toggle(Main.scroll, "Instant Reset", "Reset instantané du personnage", function(state)
+        if state then
+            task.spawn(function()
+                if _G._KiroInstantReset then
+                    _G._KiroInstantReset()
+                elseif _G.ResetPlayer then
+                    _G.ResetPlayer()
+                end
+                task.wait(0.25)
+                if _G._KiroSetToggleUI then
+                    _G._KiroSetToggleUI("Instant Reset", false, true)
+                end
+            end)
         end
     end)
 
@@ -21561,32 +22383,14 @@ end)()
         if sec then sec.LayoutOrder = 5 end
     end
     local _tpCtrl = Toggle(Utils.scroll, "TP Brainrot", nil, function(state)
-        -- only usable when All Gear is ON
-        if not (_G.KiroHubAllGear and _G.KiroHubAllGear.isEnabled and _G.KiroHubAllGear.isEnabled()) then
-            if state then
-                task.defer(function()
-                    if setToggleUI then setToggleUI("TP Brainrot", false, true) end
-                end)
-            end
-            return
-        end
         if _G.TPBrainrot and _G.TPBrainrot.set then
             _G.TPBrainrot.set(state and true or false)
         end
-        -- force persist (Toggle already saves, double-ensure)
         pcall(function()
             if setToggleSaved then setToggleSaved("TP Brainrot", state and true or false) end
         end)
     end)
     local _dropCtrl = Toggle(Utils.scroll, "Drop Brainrot", nil, function(state)
-        if not (_G.KiroHubAllGear and _G.KiroHubAllGear.isEnabled and _G.KiroHubAllGear.isEnabled()) then
-            if state then
-                task.defer(function()
-                    if setToggleUI then setToggleUI("Drop Brainrot", false, true) end
-                end)
-            end
-            return
-        end
         if _G.DropBrainrot and _G.DropBrainrot.set then
             _G.DropBrainrot.set(state and true or false)
         end
@@ -21604,34 +22408,7 @@ end)()
             _dropCtrl.card.Size = UDim2.new(1, -10, 0, 36)
         end
     end)
-    -- Masquer Duel tant que All Gear est OFF (apres cache taille valide)
-    task.defer(function()
-        task.wait(0.2)
-        pcall(function()
-            local allOn = _G.KiroHubAllGear and _G.KiroHubAllGear.isEnabled and _G.KiroHubAllGear.isEnabled()
-            if allOn then return end
-            local reg = _G._KiroToggleReg
-            for i, name in ipairs({"TP Brainrot", "Drop Brainrot"}) do
-                local ctrl = reg and reg[name]
-                if ctrl and ctrl.card then
-                    -- keep full size cached via Visible only after ensuring height
-                    if (ctrl.card.Size.Y.Offset or 0) < 8 then
-                        ctrl.card.Size = UDim2.new(1, -10, 0, 36)
-                    end
-                    ctrl.card.LayoutOrder = 5 + i
-                    ctrl.card.Visible = false
-                    ctrl.card.Size = UDim2.new(1, -10, 0, 0)
-                end
-            end
-            local sreg = _G._KiroSectionReg
-            local sec = sreg and (sreg["Duel"] or sreg["DUEL"])
-            if sec then
-                sec.LayoutOrder = 5
-                sec.Visible = false
-                sec.Size = UDim2.new(1, -10, 0, 0)
-            end
-        end)
-    end)
+
 
     Section(Utils.scroll, "Admin Panel")
     Toggle(Utils.scroll, "Admin Spammer", nil, function(state)
@@ -21951,7 +22728,7 @@ end)()
             _G.IntruderAlarm.set(state and true or false)
         end
     end)
-    -- Same save system as Auto Steal: Toggle() → setToggleSaved / getToggleSaved
+    -- Same save system as Auto Steal: Toggle() ’ setToggleSaved / getToggleSaved
     Toggle(Utils.scroll, "GummyBypass", "Bypass Gummy Bear (BlockTools / Web)", function(state)
         if _G.GummyBypass and _G.GummyBypass.set then
             _G.GummyBypass.set(state and true or false)
@@ -22096,7 +22873,7 @@ end)()
 
         local function colPrimary()
             if Theme and typeof(Theme.c1) == "Color3" then return Theme.c1 end
-            return Color3.fromRGB(168, 85, 247)
+            return Color3.fromRGB(235, 45, 55)
         end
         local function colDeep()
             if T and typeof(T.BgDeep) == "Color3" then return T.BgDeep end
@@ -22375,33 +23152,6 @@ end)()
             _G.AllowFriends.set(state and true or false)
         end
     end)
-    Toggle(Utils.scroll, "Quick Grab", nil, function(state)
-        if _G.QuickGrab and _G.QuickGrab.set then
-            _G.QuickGrab.set(state and true or false)
-        end
-    end)
-
-    Section(Utils.scroll, "Misc")
-    Toggle(Utils.scroll, "Kiro Hub All Gear", "OFF = normal · ON = retire gear list + ragdoll actions", function(state)
-        if _G.KiroHubAllGear and _G.KiroHubAllGear.set then
-            _G.KiroHubAllGear.set(state and true or false)
-        end
-    end)
-    task.defer(function()
-        pcall(function()
-            local want = false
-            if getToggleSaved then
-                want = getToggleSaved("Kiro Hub All Gear", false)
-            elseif Config then
-                want = Config.get("kiro_hub_all_gear", false) == true
-                    or Config.get("toggle:Kiro Hub All Gear", false) == true
-            end
-            if want and _G.KiroHubAllGear and _G.KiroHubAllGear.set then
-                _G.KiroHubAllGear.set(true)
-            end
-        end)
-    end)
-
     Section(Utils.scroll, "Interface")
     do
         local card = Card(Utils.scroll, 36)
@@ -22420,7 +23170,7 @@ end)()
             selectedLbl.Font = fontByName(_G.KiroHubSelectedFont or "Gotham Bold")
         end)
 
-        local arrow = Lbl(card, "►", 12, T.TextDim, Enum.Font.GothamBold, Enum.TextXAlignment.Right)
+        local arrow = Lbl(card, "º", 12, T.TextDim, Enum.Font.GothamBold, Enum.TextXAlignment.Right)
         arrow.Size = UDim2.new(0, 24, 1, 0)
         arrow.Position = UDim2.new(1, -28, 0, 0)
         arrow.TextYAlignment = Enum.TextYAlignment.Center
@@ -22482,7 +23232,7 @@ end)()
         local function setExpanded(on)
             expanded = on and true or false
             listCard.Visible = expanded
-            arrow.Text = expanded and "▼" or "►"
+            arrow.Text = expanded and "¼" or "º"
             if expanded then
                 listCard.Size = UDim2.new(1, -10, 0, 220)
             else
@@ -22558,7 +23308,7 @@ end)()
         selectedLbl.TextTruncate = Enum.TextTruncate.AtEnd
         selectedLbl.ZIndex = 5
 
-        local arrow = Lbl(card, "►", 12, T.TextDim, Enum.Font.GothamBold, Enum.TextXAlignment.Right)
+        local arrow = Lbl(card, "º", 12, T.TextDim, Enum.Font.GothamBold, Enum.TextXAlignment.Right)
         arrow.Size = UDim2.new(0, 24, 1, 0)
         arrow.Position = UDim2.new(1, -28, 0, 0)
         arrow.TextYAlignment = Enum.TextYAlignment.Center
@@ -22619,7 +23369,7 @@ end)()
         local function setExpanded(on)
             expanded = on and true or false
             listCard.Visible = expanded
-            arrow.Text = expanded and "▼" or "►"
+            arrow.Text = expanded and "¼" or "º"
             listCard.Size = expanded and UDim2.new(1, -10, 0, 160) or UDim2.new(1, -10, 0, 0)
         end
 
@@ -22809,48 +23559,438 @@ end)()
         end)
     end)
 
-    Section(ConfigTab.scroll, "Save")
-    Button(ConfigTab.scroll, "Save Config", "Force write config to disk", function()
-        pcall(function()
-            if Config then
-                if Config.flush then Config.flush() end
-                if Config.save then Config.save() end
+    -- ============================================================
+    -- CONFIG TAB (Exact layout from Photo with Red buttons & Black hover)
+    -- ============================================================
+    local function makeConfigCard(order, titleText, descText, btnText, btnWidth, onClick)
+        local card = Instance.new("Frame")
+        card.Name = titleText:gsub("%s+", "") .. "Card"
+        card.Size = UDim2.new(1, -8, 0, 58)
+        card.BackgroundColor3 = Color3.fromRGB(15, 12, 18)
+        card.BackgroundTransparency = 0.2
+        card.BorderSizePixel = 0
+        card.LayoutOrder = order
+        card.Parent = ConfigTab.scroll
+
+        do
+            local c = Instance.new("UICorner")
+            c.CornerRadius = UDim.new(0, 12)
+            c.Parent = card
+
+            local s = Instance.new("UIStroke")
+            s.Thickness = 1
+            s.Color = Color3.fromRGB(70, 50, 40)
+            s.Transparency = 0.6
+            s.Parent = card
+        end
+
+        local titleLbl = Instance.new("TextLabel")
+        titleLbl.Size = UDim2.new(1, -(btnWidth + 24), 0, 20)
+        titleLbl.Position = UDim2.new(0, 14, 0, 10)
+        titleLbl.BackgroundTransparency = 1
+        titleLbl.Text = titleText
+        titleLbl.Font = Enum.Font.GothamBold
+        titleLbl.TextSize = 14
+        titleLbl.TextColor3 = Color3.fromRGB(255, 255, 255)
+        titleLbl.TextXAlignment = Enum.TextXAlignment.Left
+        titleLbl.TextYAlignment = Enum.TextYAlignment.Center
+        titleLbl.ZIndex = 5
+        titleLbl.Parent = card
+
+        local descLbl = Instance.new("TextLabel")
+        descLbl.Size = UDim2.new(1, -(btnWidth + 24), 0, 16)
+        descLbl.Position = UDim2.new(0, 14, 0, 31)
+        descLbl.BackgroundTransparency = 1
+        descLbl.Text = descText
+        descLbl.Font = Enum.Font.Gotham
+        descLbl.TextSize = 11
+        descLbl.TextColor3 = Color3.fromRGB(165, 160, 175)
+        descLbl.TextXAlignment = Enum.TextXAlignment.Left
+        descLbl.TextYAlignment = Enum.TextYAlignment.Center
+        descLbl.ZIndex = 5
+        descLbl.Parent = card
+
+        local actionBtn = Instance.new("TextButton")
+        actionBtn.Name = "ActionBtn"
+        actionBtn.Size = UDim2.fromOffset(btnWidth, 34)
+        actionBtn.Position = UDim2.new(1, -(btnWidth + 12), 0.5, -17)
+        actionBtn.BackgroundColor3 = Color3.fromRGB(245, 30, 40) -- Bright Red matching photo
+        actionBtn.BorderSizePixel = 0
+        actionBtn.Text = btnText
+        actionBtn.Font = Enum.Font.GothamBold
+        actionBtn.TextSize = 13
+        actionBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+        actionBtn.AutoButtonColor = false
+        actionBtn.ZIndex = 6
+        actionBtn.Parent = card
+
+        local btnCorner = Instance.new("UICorner")
+        btnCorner.CornerRadius = UDim.new(1, 0) -- Smooth capsule pill matching photo
+        btnCorner.Parent = actionBtn
+
+        local btnStroke = Instance.new("UIStroke")
+        btnStroke.Thickness = 1
+        btnStroke.Color = Color3.fromRGB(255, 60, 70)
+        btnStroke.Transparency = 0.4
+        btnStroke.Parent = actionBtn
+
+        -- Requested Hover effect:
+        -- "quand on selectionnner la souris sur un bouton il devient noir avec le texte en blanc"
+        actionBtn.MouseEnter:Connect(function()
+            TweenService:Create(actionBtn, TweenInfo.new(0.15), {
+                BackgroundColor3 = Color3.fromRGB(12, 10, 14),
+                TextColor3 = Color3.fromRGB(255, 255, 255),
+            }):Play()
+            TweenService:Create(btnStroke, TweenInfo.new(0.15), {
+                Color = Color3.fromRGB(245, 30, 40),
+                Transparency = 0,
+            }):Play()
+        end)
+        actionBtn.MouseLeave:Connect(function()
+            TweenService:Create(actionBtn, TweenInfo.new(0.15), {
+                BackgroundColor3 = Color3.fromRGB(245, 30, 40),
+                TextColor3 = Color3.fromRGB(255, 255, 255),
+            }):Play()
+            TweenService:Create(btnStroke, TweenInfo.new(0.15), {
+                Color = Color3.fromRGB(255, 60, 70),
+                Transparency = 0.4,
+            }):Play()
+        end)
+
+        actionBtn.Activated:Connect(function()
+            TweenService:Create(actionBtn, TweenInfo.new(0.08), {
+                BackgroundColor3 = Color3.fromRGB(180, 20, 30)
+            }):Play()
+            task.delay(0.1, function()
+                if actionBtn and actionBtn.Parent then
+                    TweenService:Create(actionBtn, TweenInfo.new(0.15), {
+                        BackgroundColor3 = Color3.fromRGB(12, 10, 14)
+                    }):Play()
+                end
+            end)
+            if onClick then task.spawn(onClick) end
+        end)
+
+        return card
+    end
+
+    local function applyConfigLive(data)
+        if type(data) ~= "table" then return false end
+        if type(data.data) == "table" then data = data.data end
+        if type(data.config) == "table" then data = data.config end
+
+        -- 1. Extract toggles map
+        local togglesMap = {}
+        if type(data.toggles) == "table" then
+            for k, v in pairs(data.toggles) do
+                togglesMap[tostring(k)] = (v and true or false)
             end
-        end)
+        end
+        for k, v in pairs(data) do
+            if type(k) == "string" and k:sub(1, 7) == "toggle:" then
+                local tName = k:sub(8)
+                if tName ~= "" and togglesMap[tName] == nil then
+                    togglesMap[tName] = (v and true or false)
+                end
+            elseif type(v) == "boolean" and k ~= "_dirty" then
+                if togglesMap[k] == nil then
+                    togglesMap[k] = v
+                end
+            end
+        end
+
+        -- Map panel visibility booleans to their corresponding toggles
+        if data["booster_on"] ~= nil and togglesMap["Booster"] == nil then
+            togglesMap["Booster"] = data["booster_on"] and true or false
+        end
+        if data["booster_gui_visible"] ~= nil and togglesMap["Booster GUI"] == nil then
+            togglesMap["Booster GUI"] = data["booster_gui_visible"] and true or false
+        end
+        if data["actions_panel_visible"] ~= nil and togglesMap["Actions Panel"] == nil then
+            togglesMap["Actions Panel"] = data["actions_panel_visible"] and true or false
+        end
+        if data["actions_panel_mobile_visible"] ~= nil and togglesMap["Actions Panel Mobile"] == nil then
+            togglesMap["Actions Panel Mobile"] = data["actions_panel_mobile_visible"] and true or false
+        end
+        if data["defense_panel_visible"] ~= nil and togglesMap["Defense Panel"] == nil then
+            togglesMap["Defense Panel"] = data["defense_panel_visible"] and true or false
+        end
+        if data["quick_admin_panel_visible"] ~= nil and togglesMap["Quick Admin Panel"] == nil then
+            togglesMap["Quick Admin Panel"] = data["quick_admin_panel_visible"] and true or false
+        end
+        if data["admin_spammer_visible"] ~= nil and togglesMap["Admin Spammer"] == nil then
+            togglesMap["Admin Spammer"] = data["admin_spammer_visible"] and true or false
+        end
+        if data["command_cooldowns_visible"] ~= nil and togglesMap["Command Cooldowns"] == nil then
+            togglesMap["Command Cooldowns"] = data["command_cooldowns_visible"] and true or false
+        end
+        if data["isv2_panel_visible"] ~= nil and togglesMap["Instant Steal Panel V2"] == nil then
+            togglesMap["Instant Steal Panel V2"] = data["isv2_panel_visible"] and true or false
+        end
+        if data["steal_target_panel_visible"] ~= nil and togglesMap["Steal Target"] == nil then
+            togglesMap["Steal Target"] = data["steal_target_panel_visible"] and true or false
+        end
+        if data["tp_brainrot_visible"] ~= nil and togglesMap["TP Brainrot"] == nil then
+            togglesMap["TP Brainrot"] = data["tp_brainrot_visible"] and true or false
+        end
+        if data["drop_brainrot_visible"] ~= nil and togglesMap["Drop Brainrot"] == nil then
+            togglesMap["Drop Brainrot"] = data["drop_brainrot_visible"] and true or false
+        end
+
+        togglesMap["Instant Reset"] = nil
+        Config.data["toggle:Instant Reset"] = false
+
+        -- 2. Save directly into Config.data
+        if type(Config.data) ~= "table" then Config.data = {} end
+        for k, v in pairs(data) do
+            Config.data[k] = v
+        end
+        Config.data["toggles"] = togglesMap
+        for name, state in pairs(togglesMap) do
+            Config.data["toggle:" .. name] = state
+        end
+        Config.data["toggle:Instant Reset"] = false
+        if Config.data["toggles"] then Config.data["toggles"]["Instant Reset"] = nil end
+        Config._dirty = true
         pcall(function()
-            if showToast then showToast("Config saved", true) end
+            if Config.flush then Config.flush() end
+            if Config.save then Config.save() end
         end)
-    end)
-    Button(ConfigTab.scroll, "Reload Config", "Re-read config from disk", function()
+
+        -- Write to file on executor disk
         pcall(function()
             local HttpService = game:GetService("HttpService")
-            local FILE = "KiroHub/config.json"
-            local FILE_BAK = "KiroHub/config.bak.json"
-            local function tryDecode(path)
-                if isfile and readfile and isfile(path) then
-                    local ok, decoded = pcall(function() return HttpService:JSONDecode(readfile(path)) end)
-                    if ok and type(decoded) == "table" then return decoded end
+            local enc = HttpService:JSONEncode(Config.data)
+            if makefolder then
+                if not (isfolder and isfolder("KiroHub")) then makefolder("KiroHub") end
+                if not (isfolder and isfolder("KiroHub/Configs")) then makefolder("KiroHub/Configs") end
+            end
+            if writefile then
+                writefile("KiroHub/config.json", enc)
+                writefile("KiroHub/Configs/shared.json", enc)
+            end
+        end)
+
+        -- 3. Live Apply All Toggles in the Hub UI & Callbacks
+        local reg = _G._KiroToggleReg or {}
+        local cbs = _G._KiroToggleCallbacks or {}
+
+        for name, want in pairs(togglesMap) do
+            local ctrl = reg[name]
+            if ctrl then
+                pcall(function()
+                    if ctrl.setState then
+                        ctrl.setState(want, true)
+                    elseif ctrl.set then
+                        ctrl.set(want, true)
+                    end
+                end)
+            else
+                local cb = cbs[name]
+                if type(cb) == "function" then
+                    pcall(cb, want)
                 end
             end
-            local d = tryDecode(FILE) or tryDecode(FILE_BAK)
-            if d and Config then
-                Config.data = d
-                if _G._KiroReapplyToggles then
-                    task.defer(function() pcall(_G._KiroReapplyToggles) end)
+        end
+
+        -- 4. Live Apply Modules and Panels
+        -- Booster
+        if data["booster_spd"] or data["booster_jmp"] then
+            pcall(function()
+                if _G.Booster then
+                    if data["booster_spd"] and _G.Booster.setSpeed then _G.Booster.setSpeed(data["booster_spd"]) end
+                    if data["booster_jmp"] and _G.Booster.setJump then _G.Booster.setJump(data["booster_jmp"]) end
                 end
-                if showToast then showToast("Config reloaded", true) end
+            end)
+        end
+        if togglesMap["Booster"] ~= nil then
+            pcall(function()
+                if _G.Booster and _G.Booster.set then _G.Booster.set(togglesMap["Booster"]) end
+            end)
+        end
+        if togglesMap["Booster GUI"] ~= nil then
+            pcall(function()
+                if _G.BoosterGUI and _G.BoosterGUI.setVisible then _G.BoosterGUI.setVisible(togglesMap["Booster GUI"]) end
+            end)
+        end
+
+        -- Delivery ESP
+        local delivState = (togglesMap["Delivery Esp"] ~= nil) and togglesMap["Delivery Esp"] or togglesMap["Delivery ESP"]
+        if delivState ~= nil then
+            pcall(function()
+                if _G.DeliveryESP and _G.DeliveryESP.set then _G.DeliveryESP.set(delivState) end
+            end)
+        end
+
+        -- Steal Target
+        if togglesMap["Steal Target"] ~= nil then
+            pcall(function()
+                if _G.StealTarget and _G.StealTarget.set then _G.StealTarget.set(togglesMap["Steal Target"]) end
+            end)
+        end
+
+        -- Instant Steal V2
+        if togglesMap["Instant Steal Panel V2"] ~= nil then
+            pcall(function()
+                if _G.InstantStealV2 and _G.InstantStealV2.set then _G.InstantStealV2.set(togglesMap["Instant Steal Panel V2"]) end
+            end)
+        end
+
+        -- Actions Panel & Mobile
+        if togglesMap["Actions Panel"] ~= nil then
+            pcall(function()
+                if _G.ActionsPanel then
+                    if _G.ActionsPanel.setVisible then _G.ActionsPanel.setVisible(togglesMap["Actions Panel"])
+                    elseif _G.ActionsPanel.set then _G.ActionsPanel.set(togglesMap["Actions Panel"]) end
+                end
+            end)
+        end
+        if togglesMap["Actions Panel Mobile"] ~= nil then
+            pcall(function()
+                if _G.ActionsPanelMobile and _G.ActionsPanelMobile.set then _G.ActionsPanelMobile.set(togglesMap["Actions Panel Mobile"]) end
+            end)
+        end
+
+        -- Defense Panel
+        if togglesMap["Defense Panel"] ~= nil then
+            pcall(function()
+                if _G.DefensePanel then
+                    if _G.DefensePanel.setVisible then _G.DefensePanel.setVisible(togglesMap["Defense Panel"])
+                    elseif _G.DefensePanel.set then _G.DefensePanel.set(togglesMap["Defense Panel"]) end
+                end
+            end)
+        end
+
+        -- Quick Admin Panel
+        if togglesMap["Quick Admin Panel"] ~= nil then
+            pcall(function()
+                if _G.QuickAdminPanel and _G.QuickAdminPanel.set then _G.QuickAdminPanel.set(togglesMap["Quick Admin Panel"]) end
+            end)
+        end
+
+        -- Admin Spammer
+        if togglesMap["Admin Spammer"] ~= nil then
+            pcall(function()
+                if _G.AdminSpammer and _G.AdminSpammer.set then _G.AdminSpammer.set(togglesMap["Admin Spammer"]) end
+            end)
+        end
+
+        -- Command Cooldowns
+        if togglesMap["Command Cooldowns"] ~= nil then
+            pcall(function()
+                if _G.CommandCooldowns and _G.CommandCooldowns.setVisible then _G.CommandCooldowns.setVisible(togglesMap["Command Cooldowns"]) end
+            end)
+        end
+
+        -- Duel (TP & Drop Brainrot)
+        if togglesMap["TP Brainrot"] ~= nil then
+            pcall(function()
+                if _G.TPBrainrot and _G.TPBrainrot.set then _G.TPBrainrot.set(togglesMap["TP Brainrot"]) end
+            end)
+        end
+        if togglesMap["Drop Brainrot"] ~= nil then
+            pcall(function()
+                if _G.DropBrainrot and _G.DropBrainrot.set then _G.DropBrainrot.set(togglesMap["Drop Brainrot"]) end
+            end)
+        end
+
+        -- ESP Modules
+        if togglesMap["Brainrot ESP"] ~= nil and _G.BrainrotESP and _G.BrainrotESP.set then
+            pcall(function() _G.BrainrotESP.set(togglesMap["Brainrot ESP"]) end)
+        end
+        if togglesMap["Player ESP"] ~= nil and _G.PlayerESP and _G.PlayerESP.set then
+            pcall(function() _G.PlayerESP.set(togglesMap["Player ESP"]) end)
+        end
+        if togglesMap["Clone ESP"] ~= nil and _G.CloneESP and _G.CloneESP.set then
+            pcall(function() _G.CloneESP.set(togglesMap["Clone ESP"]) end)
+        end
+        if togglesMap["Timer ESP"] ~= nil and _G.TimerESP and _G.TimerESP.set then
+            pcall(function() _G.TimerESP.set(togglesMap["Timer ESP"]) end)
+        end
+        if togglesMap["Mine ESP"] ~= nil and _G.MineESP and _G.MineESP.set then
+            pcall(function() _G.MineESP.set(togglesMap["Mine ESP"]) end)
+        end
+        if togglesMap["AP ESP"] ~= nil and _G.APESP and _G.APESP.set then
+            pcall(function() _G.APESP.set(togglesMap["AP ESP"]) end)
+        end
+        if togglesMap["Allow Disallow ESP"] ~= nil and _G.AllowDisallowESP and _G.AllowDisallowESP.set then
+            pcall(function() _G.AllowDisallowESP.set(togglesMap["Allow Disallow ESP"]) end)
+        end
+        if togglesMap["Allow Friends"] ~= nil and _G.AllowFriends and _G.AllowFriends.set then
+            pcall(function() _G.AllowFriends.set(togglesMap["Allow Friends"]) end)
+        end
+
+        -- Carpet Speed
+        if data["carpetSpeed"] and _G.CarpetSpeed and _G.CarpetSpeed.setSpeed then
+            pcall(function() _G.CarpetSpeed.setSpeed(data["carpetSpeed"]) end)
+        end
+        if togglesMap["Carpet Speed"] ~= nil and _G.CarpetSpeed and _G.CarpetSpeed.set then
+            pcall(function() _G.CarpetSpeed.set(togglesMap["Carpet Speed"]) end)
+        end
+
+        -- Game Stretcher
+        if (data["cameraFOV"] or data["gameStretcherFactor"]) and _G.GameStretcher then
+            pcall(function()
+                if data["cameraFOV"] and _G.GameStretcher.setFOV then _G.GameStretcher.setFOV(data["cameraFOV"]) end
+                if data["gameStretcherFactor"] and _G.GameStretcher.setFactor then _G.GameStretcher.setFactor(data["gameStretcherFactor"]) end
+            end)
+        end
+
+        -- 5. Update editor box with the loaded JSON
+        pcall(function()
+            local HttpService = game:GetService("HttpService")
+            local cleanJson = HttpService:JSONEncode(Config.data)
+            if _G._KiroConfigEditorBox and _G._KiroConfigEditorBox.Parent then
+                _G._KiroConfigEditorBox.Text = cleanJson
+            end
+        end)
+
+        return true
+    end
+    _G._KiroApplyConfig = applyConfigLive
+
+    -- 1. Paste Config (Photo Row 1)
+    makeConfigCard(1, "Paste Config", "Import settings from clipboard", "Paste", 88, function()
+        pcall(function()
+            local HttpService = game:GetService("HttpService")
+            local body = nil
+            pcall(function()
+                if getclipboard then body = getclipboard() end
+            end)
+            if type(body) ~= "string" or #body < 2 then
+                if showToast then showToast("Presse-papier vide", false) end
+                return
+            end
+            body = body:gsub("^%s*\`\`\`json%s*", ""):gsub("^%s*\`\`\`%s*", ""):gsub("%s*\`\`\`%s*$", "")
+            body = body:gsub("^%s+", ""):gsub("%s+$", "")
+            local okJ, data = pcall(function()
+                return HttpService:JSONDecode(body)
+            end)
+            if not okJ or type(data) ~= "table" then
+                if showToast then showToast("JSON invalide dans le presse-papier", false) end
+                return
+            end
+
+            -- Update ConfigEditorBox
+            if _G._KiroConfigEditorBox and _G._KiroConfigEditorBox.Parent then
+                _G._KiroConfigEditorBox.Text = body
+            end
+
+            local okApply = applyConfigLive(data)
+            if okApply then
+                if showToast then showToast("Config collee et appliquee!", true) end
             else
-                if showToast then showToast("No config file", false) end
+                if showToast then showToast("Erreur lors de l'application", false) end
             end
         end)
     end)
 
-    Section(ConfigTab.scroll, "Export / Import")
-    Button(ConfigTab.scroll, "Export Config", "Download config as .txt + clipboard", function()
+    -- 2. Copy Config (Photo Row 2)
+    makeConfigCard(2, "Copy Config", "Export all settings to clipboard", "Copy", 88, function()
         pcall(function()
             local HttpService = game:GetService("HttpService")
             if not Config or type(Config.data) ~= "table" then
-                if showToast then showToast("No config data", false) end
+                if showToast then showToast("Aucune donnee de config", false) end
                 return
             end
             if Config.flush then pcall(function() Config.flush() end) end
@@ -22858,24 +23998,15 @@ end)()
                 return HttpService:JSONEncode(Config.data)
             end)
             if not ok or type(encoded) ~= "string" or #encoded < 2 then
-                if showToast then showToast("Encode failed", false) end
+                if showToast then showToast("Erreur d'encodage", false) end
                 return
             end
-            local EXPORT_TXT = "KiroHub/config_export.txt"
-            local EXPORT_JSON = "KiroHub/config_export.json" -- keep legacy for import compat
-            pcall(function()
-                if makefolder then
-                    if not (isfolder and isfolder("KiroHub")) then makefolder("KiroHub") end
-                end
-            end)
-            local wrote = false
-            pcall(function()
-                if writefile then
-                    writefile(EXPORT_TXT, encoded)
-                    wrote = true
-                    pcall(function() writefile(EXPORT_JSON, encoded) end)
-                end
-            end)
+
+            -- Automatically populate the Config Editor box with the copied JSON!
+            if _G._KiroConfigEditorBox and _G._KiroConfigEditorBox.Parent then
+                _G._KiroConfigEditorBox.Text = encoded
+            end
+
             local clipped = false
             pcall(function()
                 if setclipboard then
@@ -22886,334 +24017,393 @@ end)()
                     clipped = true
                 end
             end)
-            local msg = "Exported"
-            if wrote then msg = msg .. " → " .. EXPORT_TXT end
-            if clipped then msg = msg .. " (+ clipboard)" end
-            if showToast then showToast(msg, true) end
-        end)
-    end)
-    Button(ConfigTab.scroll, "Import Config", "From KiroHub/config_export.txt", function()
-        pcall(function()
-            local HttpService = game:GetService("HttpService")
-            if not Config then
-                if showToast then showToast("Config unavailable", false) end
-                return
-            end
-            local candidates = {
-                "KiroHub/config_export.txt",
-                "KiroHub/config_export.json",
-                "KiroHub/import.json",
-                "KiroHub/import.txt",
-                "KiroHub/config.json",
-            }
-            local decoded = nil
-            local used = nil
-            for _, path in ipairs(candidates) do
-                local okRead, body = pcall(function()
-                    if isfile and isfile(path) and readfile then
-                        return readfile(path)
-                    end
-                end)
-                if okRead and type(body) == "string" and #body > 2 then
-                    local okJ, data = pcall(function()
-                        return HttpService:JSONDecode(body)
-                    end)
-                    if okJ and type(data) == "table" then
-                        decoded = data
-                        used = path
-                        break
-                    end
+            pcall(function()
+                if makefolder then
+                    if not (isfolder and isfolder("KiroHub")) then makefolder("KiroHub") end
+                    if not (isfolder and isfolder("KiroHub/Configs")) then makefolder("KiroHub/Configs") end
                 end
-            end
-            if not decoded then
-                if showToast then showToast("No import file found", false) end
-                return
-            end
-            if type(Config.data) ~= "table" then Config.data = {} end
-            for k, v in pairs(decoded) do
-                Config.data[k] = v
-            end
-            Config._dirty = true
-            pcall(function()
-                if Config.flush then Config.flush() end
-                if Config.save then Config.save() end
-            end)
-            task.defer(function()
-                pcall(function()
-                    if _G._KiroReapplyToggles then _G._KiroReapplyToggles() end
-                end)
-            end)
-            if showToast then showToast("Imported: " .. tostring(used), true) end
-        end)
-    end)
-    Button(ConfigTab.scroll, "Import Clipboard", "Paste JSON from clipboard", function()
-        pcall(function()
-            local HttpService = game:GetService("HttpService")
-            if not Config then return end
-            local body = nil
-            pcall(function()
-                if getclipboard then body = getclipboard() end
-            end)
-            if type(body) ~= "string" or #body < 2 then
-                if showToast then showToast("Clipboard empty", false) end
-                return
-            end
-            body = body:gsub("^```json%s*", ""):gsub("^```%s*", ""):gsub("%s*```$", "")
-            local okJ, data = pcall(function()
-                return HttpService:JSONDecode(body)
-            end)
-            if not okJ or type(data) ~= "table" then
-                if showToast then showToast("Invalid JSON clipboard", false) end
-                return
-            end
-            if type(Config.data) ~= "table" then Config.data = {} end
-            for k, v in pairs(data) do
-                Config.data[k] = v
-            end
-            Config._dirty = true
-            pcall(function()
-                if Config.flush then Config.flush() end
-                if Config.save then Config.save() end
-            end)
-            task.defer(function()
-                pcall(function()
-                    if _G._KiroReapplyToggles then _G._KiroReapplyToggles() end
-                end)
-            end)
-            if showToast then showToast("Imported from clipboard", true) end
-        end)
-    end)
-
-    Section(ConfigTab.scroll, "Paste Config")
-    do
-        local boxCard = Instance.new("Frame")
-        boxCard.Size = UDim2.new(1, -8, 0, 120)
-        boxCard.BackgroundColor3 = T.Card
-        boxCard.BorderSizePixel = 0
-        boxCard.LayoutOrder = 50
-        boxCard.Parent = ConfigTab.scroll
-        pcall(function()
-            if trackBgFrame then trackBgFrame(boxCard, "Card") end
-        end)
-        Corner(boxCard, 12)
-        Stroke(boxCard, T.Line, 1, 0.8)
-
-        local hint = Instance.new("TextLabel")
-        hint.Size = UDim2.new(1, -12, 0, 16)
-        hint.Position = UDim2.new(0, 8, 0, 4)
-        hint.BackgroundTransparency = 1
-        hint.Text = "Colle ici le JSON d'une config"
-        hint.TextColor3 = T.TextDim
-        hint.Font = Enum.Font.Gotham
-        hint.TextSize = 10
-        hint.TextXAlignment = Enum.TextXAlignment.Left
-        hint.Parent = boxCard
-
-        local input = Instance.new("TextBox")
-        input.Name = "ConfigPasteBox"
-        input.Size = UDim2.new(1, -12, 1, -28)
-        input.Position = UDim2.new(0, 6, 0, 22)
-        input.BackgroundColor3 = T.BgDeep or Color3.fromRGB(12, 10, 9)
-        input.BorderSizePixel = 0
-        input.ClearTextOnFocus = false
-        input.MultiLine = true
-        input.TextWrapped = true
-        input.TextXAlignment = Enum.TextXAlignment.Left
-        input.TextYAlignment = Enum.TextYAlignment.Top
-        input.Font = Enum.Font.Code
-        input.TextSize = 11
-        input.TextColor3 = T.Text
-        input.PlaceholderText = '{"toggles":{...}, ...}'
-        input.PlaceholderColor3 = T.TextDim
-        input.Text = ""
-        input.ZIndex = 5
-        input.Parent = boxCard
-        Corner(input, 8)
-        do
-            local pad = Instance.new("UIPadding")
-            pad.PaddingTop = UDim.new(0, 6)
-            pad.PaddingBottom = UDim.new(0, 6)
-            pad.PaddingLeft = UDim.new(0, 8)
-            pad.PaddingRight = UDim.new(0, 8)
-            pad.Parent = input
-        end
-
-        _G._KiroConfigPasteBox = input
-
-        local function importFromText(raw)
-            local HttpService = game:GetService("HttpService")
-            if not Config then
-                if showToast then showToast("Config unavailable", false) end
-                return false
-            end
-            if type(raw) ~= "string" then
-                if showToast then showToast("Empty text", false) end
-                return false
-            end
-            raw = raw:gsub("^%s+", ""):gsub("%s+$", "")
-            if #raw < 2 then
-                if showToast then showToast("Empty text", false) end
-                return false
-            end
-            raw = raw:gsub("^```json%s*", ""):gsub("^```%s*", ""):gsub("%s*```$", "")
-            local okJ, data = pcall(function()
-                return HttpService:JSONDecode(raw)
-            end)
-            if not okJ or type(data) ~= "table" then
-                if showToast then showToast("JSON invalide", false) end
-                return false
-            end
-            if type(Config.data) ~= "table" then Config.data = {} end
-            for k, v in pairs(data) do
-                Config.data[k] = v
-            end
-            Config._dirty = true
-            pcall(function()
-                if Config.flush then Config.flush() end
-                if Config.save then Config.save() end
-            end)
-            task.defer(function()
-                pcall(function()
-                    if _G._KiroReapplyToggles then _G._KiroReapplyToggles() end
-                end)
-            end)
-            if showToast then showToast("Config importée", true) end
-            return true
-        end
-
-        Button(ConfigTab.scroll, "Import Pasted Config", "Import JSON from the box above", function()
-            local box = _G._KiroConfigPasteBox
-            local text = box and box.Text or ""
-            importFromText(text)
-        end)
-    end
-
-    Section(ConfigTab.scroll, "Danger")
-    Button(ConfigTab.scroll, "Reset Full Config", "Reset ALL settings, toggles, panels", function()
-        task.spawn(function()
-            pcall(function()
-                local reg = _G._KiroToggleReg
-                if type(reg) == "table" then
-                    for name, ctrl in pairs(reg) do
-                        if ctrl and ctrl.set then
-                            pcall(function() ctrl.set(false, false) end)
-                        end
-                    end
-                end
-            end)
-
-            pcall(function()
-                local cbs = _G._KiroToggleCallbacks
-                if type(cbs) == "table" then
-                    for name, cb in pairs(cbs) do
-                        if type(cb) == "function" then
-                            pcall(cb, false)
-                        end
-                    end
-                end
-            end)
-
-            pcall(function()
-                if _G.DefensePanel then
-                    if _G.DefensePanel.setVisible then _G.DefensePanel.setVisible(false) end
-                end
-                if _G.InstantStealV2 and _G.InstantStealV2.set then _G.InstantStealV2.set(false) end
-                if _G.BoosterGUI and _G.BoosterGUI.setVisible then _G.BoosterGUI.setVisible(false) end
-                if _G.Booster and _G.Booster.set then _G.Booster.set(false) end
-                if _G.StealTarget and _G.StealTarget.set then _G.StealTarget.set(false) end
-                if _G.ActionsPanel and _G.ActionsPanel.setVisible then _G.ActionsPanel.setVisible(false) end
-                if _G.ActionsPanel and _G.ActionsPanel.set then _G.ActionsPanel.set(false) end
-                if _G.ActionsPanelMobile and _G.ActionsPanelMobile.set then _G.ActionsPanelMobile.set(false) end
-                if _G.QuickAdminPanel and _G.QuickAdminPanel.set then _G.QuickAdminPanel.set(false) end
-                if _G.AdminSpammer and _G.AdminSpammer.set then _G.AdminSpammer.set(false) end
-                if _G.CommandCooldowns and _G.CommandCooldowns.set then _G.CommandCooldowns.set(false) end
-                if _G.BrainrotESP and _G.BrainrotESP.set then _G.BrainrotESP.set(false) end
-                if _G.PlayerESP and _G.PlayerESP.set then _G.PlayerESP.set(false) end
-                if _G.CloneESP and _G.CloneESP.set then _G.CloneESP.set(false) end
-                if _G.TimerESP and _G.TimerESP.set then _G.TimerESP.set(false) end
-                if _G.MineESP and _G.MineESP.set then _G.MineESP.set(false) end
-                if _G.APESP and _G.APESP.set then _G.APESP.set(false) end
-                if _G.AllowDisallowESP and _G.AllowDisallowESP.set then _G.AllowDisallowESP.set(false) end
-                if _G.Unwalk and _G.Unwalk.set then _G.Unwalk.set(false) end
-                if _G.QuickGrab and _G.QuickGrab.set then _G.QuickGrab.set(false) end
-                if _G.AntiAdmin and _G.AntiAdmin.set then _G.AntiAdmin.set(false) end
-                if _G.AutoResetOnBalloon and _G.AutoResetOnBalloon.set then _G.AutoResetOnBalloon.set(false) end
-                if _G.IntruderAlarm and _G.IntruderAlarm.set then _G.IntruderAlarm.set(false) end
-                if _G.GummyBypass and _G.GummyBypass.set then _G.GummyBypass.set(false) end
-                if _G.PaintBallBypass and _G.PaintBallBypass.set then _G.PaintBallBypass.set(false) end
-                if _G.InfiniteJump and _G.InfiniteJump.set then _G.InfiniteJump.set(false) end
-                if _G.CarpetSpeed and _G.CarpetSpeed.set then _G.CarpetSpeed.set(false) end
-                if _G.AutoCarpetSpeed and _G.AutoCarpetSpeed.set then _G.AutoCarpetSpeed.set(false) end
-                if _G.FPSBooster and _G.FPSBooster.set then _G.FPSBooster.set(false) end
-                if Steal and Steal.AutoStealEnabled ~= nil then Steal.AutoStealEnabled = false end
-                if HALF then
-                    HALF.potion = false
-                    HALF.autoWalk = false
-                    HALF.autoTpOnAllow = false
-                    HALF.autoTpOnUnlock = false
-                end
-            end)
-
-            pcall(function()
-                if Config then
-                    Config.data = {}
-                    Config._dirty = true
-                end
-            end)
-
-            pcall(function()
-                local HttpService = game:GetService("HttpService")
-                local empty = "{}"
-                pcall(function()
-                    if makefolder and not (isfolder and isfolder("KiroHub")) then
-                        makefolder("KiroHub")
-                    end
-                end)
                 if writefile then
-                    pcall(function() writefile("KiroHub/config.json", empty) end)
-                    pcall(function() writefile("KiroHub/config.bak.json", empty) end)
-                    pcall(function() writefile("KiroHub/config_export.json", empty) end)
-                    pcall(function() writefile("KiroHub/config_export.txt", empty) end)
-                end
-                if Config then
-                    Config.data = {}
-                    Config._dirty = false
-                    if Config.flush then pcall(function() Config.flush() end) end
+                    writefile("KiroHub/Configs/shared.json", encoded)
+                    writefile("KiroHub/config_export.txt", encoded)
                 end
             end)
+            if clipped then
+                if showToast then showToast("Config copiee dans le presse-papier!", true) end
+            else
+                if showToast then showToast("Config prete dans l'editeur", true) end
+            end
+        end)
+    end)
 
-            pcall(function()
-                if _G._KiroConfigPasteBox then
-                    _G._KiroConfigPasteBox.Text = ""
-                end
-            end)
-
-            pcall(function()
-                if _UI then
-                    _UI.userPct = 100
-                    if _applyUiScale then _applyUiScale() end
-                end
-            end)
-
-            pcall(function()
+    -- 3. Reset Config (Photo Row 3)
+    makeConfigCard(3, "Reset Config", "Restore all defaults", "R\195\169initialiser", 112, function()
+        pcall(function()
+            task.spawn(function()
+                pcall(function()
+                    local reg = _G._KiroToggleReg
+                    if type(reg) == "table" then
+                        for name, ctrl in pairs(reg) do
+                            if ctrl and ctrl.set then
+                                pcall(function() ctrl.set(false, false) end)
+                            end
+                        end
+                    end
+                end)
+                pcall(function()
+                    local cbs = _G._KiroToggleCallbacks
+                    if type(cbs) == "table" then
+                        for name, cb in pairs(cbs) do
+                            if type(cb) == "function" then
+                                pcall(cb, false)
+                            end
+                        end
+                    end
+                end)
+                pcall(function()
+                    if _G.DefensePanel and _G.DefensePanel.setVisible then _G.DefensePanel.setVisible(false) end
+                    if _G.InstantStealV2 and _G.InstantStealV2.set then _G.InstantStealV2.set(false) end
+                    if _G.BoosterGUI and _G.BoosterGUI.setVisible then _G.BoosterGUI.setVisible(false) end
+                    if _G.Booster and _G.Booster.set then _G.Booster.set(false) end
+                    if _G.StealTarget and _G.StealTarget.set then _G.StealTarget.set(false) end
+                    if _G.ActionsPanel and _G.ActionsPanel.setVisible then _G.ActionsPanel.setVisible(false) end
+                    if _G.ActionsPanel and _G.ActionsPanel.set then _G.ActionsPanel.set(false) end
+                    if _G.ActionsPanelMobile and _G.ActionsPanelMobile.set then _G.ActionsPanelMobile.set(false) end
+                    if _G.QuickAdminPanel and _G.QuickAdminPanel.set then _G.QuickAdminPanel.set(false) end
+                    if _G.AdminSpammer and _G.AdminSpammer.set then _G.AdminSpammer.set(false) end
+                    if _G.CommandCooldowns and _G.CommandCooldowns.set then _G.CommandCooldowns.set(false) end
+                    if _G.DeliveryESP and _G.DeliveryESP.set then _G.DeliveryESP.set(false) end
+                    if _G.BrainrotESP and _G.BrainrotESP.set then _G.BrainrotESP.set(false) end
+                    if _G.PlayerESP and _G.PlayerESP.set then _G.PlayerESP.set(false) end
+                    if _G.CloneESP and _G.CloneESP.set then _G.CloneESP.set(false) end
+                    if _G.TimerESP and _G.TimerESP.set then _G.TimerESP.set(false) end
+                    if _G.MineESP and _G.MineESP.set then _G.MineESP.set(false) end
+                    if _G.APESP and _G.APESP.set then _G.APESP.set(false) end
+                    if _G.AllowDisallowESP and _G.AllowDisallowESP.set then _G.AllowDisallowESP.set(false) end
+                    if _G.Unwalk and _G.Unwalk.set then _G.Unwalk.set(false) end
+                    if _G.QuickGrab and _G.QuickGrab.set then _G.QuickGrab.set(false) end
+                    if _G.AntiAdmin and _G.AntiAdmin.set then _G.AntiAdmin.set(false) end
+                    if _G.AutoResetOnBalloon and _G.AutoResetOnBalloon.set then _G.AutoResetOnBalloon.set(false) end
+                    if _G.IntruderAlarm and _G.IntruderAlarm.set then _G.IntruderAlarm.set(false) end
+                    if _G.GummyBypass and _G.GummyBypass.set then _G.GummyBypass.set(false) end
+                    if _G.PaintBallBypass and _G.PaintBallBypass.set then _G.PaintBallBypass.set(false) end
+                    if _G.InfiniteJump and _G.InfiniteJump.set then _G.InfiniteJump.set(false) end
+                    if _G.CarpetSpeed and _G.CarpetSpeed.set then _G.CarpetSpeed.set(false) end
+                    if _G.AutoCarpetSpeed and _G.AutoCarpetSpeed.set then _G.AutoCarpetSpeed.set(false) end
+                    if _G.FPSBooster and _G.FPSBooster.set then _G.FPSBooster.set(false) end
+                end)
+                pcall(function()
+                    if Config then
+                        Config.data = {}
+                        Config._dirty = true
+                        if Config.flush then Config.flush() end
+                        if Config.save then Config.save() end
+                    end
+                end)
+                pcall(function()
+                    if _UI then
+                        _UI.userPct = 100
+                        if _applyUiScale then _applyUiScale() end
+                    end
+                end)
                 if showToast then showToast("Full config reset", true) end
             end)
         end)
     end)
 
+    -- 4. Config Editor & Save (Text Area + Red Capsule Save Button with Black Hover)
+    local editorCard = Instance.new("Frame")
+    editorCard.Name = "ConfigEditorCard"
+    editorCard.Size = UDim2.new(1, -8, 0, 180)
+    editorCard.BackgroundColor3 = Color3.fromRGB(15, 12, 18)
+    editorCard.BackgroundTransparency = 0.2
+    editorCard.BorderSizePixel = 0
+    editorCard.LayoutOrder = 4
+    editorCard.Parent = ConfigTab.scroll
+
     do
-        local info = Instance.new("TextLabel")
-        info.Size = UDim2.new(1, -8, 0, 36)
-        info.BackgroundTransparency = 1
-        info.Text = "Path: KiroHub/config.json\nExport: KiroHub/config_export.txt\nAuto-save every 2s"
-        info.TextColor3 = T.TextDim
-        info.Font = Enum.Font.Gotham
-        info.TextSize = 10
-        info.TextXAlignment = Enum.TextXAlignment.Left
-        info.TextYAlignment = Enum.TextYAlignment.Top
-        info.TextWrapped = true
-        info.LayoutOrder = 999
-        info.Parent = ConfigTab.scroll
+        local c = Instance.new("UICorner")
+        c.CornerRadius = UDim.new(0, 12)
+        c.Parent = editorCard
+
+        local s = Instance.new("UIStroke")
+        s.Thickness = 1
+        s.Color = Color3.fromRGB(70, 50, 40)
+        s.Transparency = 0.6
+        s.Parent = editorCard
+    end
+
+    local edTitle = Instance.new("TextLabel")
+    edTitle.Size = UDim2.new(1, -28, 0, 20)
+    edTitle.Position = UDim2.new(0, 14, 0, 10)
+    edTitle.BackgroundTransparency = 1
+    edTitle.Text = "Config Editor"
+    edTitle.Font = Enum.Font.GothamBold
+    edTitle.TextSize = 14
+    edTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
+    edTitle.TextXAlignment = Enum.TextXAlignment.Left
+    edTitle.TextYAlignment = Enum.TextYAlignment.Center
+    edTitle.ZIndex = 5
+    edTitle.Parent = editorCard
+
+    local edDesc = Instance.new("TextLabel")
+    edDesc.Size = UDim2.new(1, -28, 0, 16)
+    edDesc.Position = UDim2.new(0, 14, 0, 31)
+    edDesc.BackgroundTransparency = 1
+    edDesc.Text = "Ecris ou colle ta config JSON ci-dessous"
+    edDesc.Font = Enum.Font.Gotham
+    edDesc.TextSize = 11
+    edDesc.TextColor3 = Color3.fromRGB(165, 160, 175)
+    edDesc.TextXAlignment = Enum.TextXAlignment.Left
+    edDesc.TextYAlignment = Enum.TextYAlignment.Center
+    edDesc.ZIndex = 5
+    edDesc.Parent = editorCard
+
+    local editorBox = Instance.new("TextBox")
+    editorBox.Name = "ConfigEditorBox"
+    editorBox.Size = UDim2.new(1, -24, 0, 78)
+    editorBox.Position = UDim2.new(0, 12, 0, 52)
+    editorBox.BackgroundColor3 = Color3.fromRGB(10, 8, 12)
+    editorBox.BorderSizePixel = 0
+    editorBox.ClearTextOnFocus = false
+    editorBox.MultiLine = true
+    editorBox.TextWrapped = true
+    editorBox.TextXAlignment = Enum.TextXAlignment.Left
+    editorBox.TextYAlignment = Enum.TextYAlignment.Top
+    editorBox.Font = Enum.Font.Code
+    editorBox.TextSize = 11
+    editorBox.TextColor3 = Color3.fromRGB(245, 240, 250)
+    editorBox.PlaceholderText = '{"toggles": {...}, ...}'
+    editorBox.PlaceholderColor3 = Color3.fromRGB(110, 105, 120)
+    editorBox.Text = ""
+    editorBox.ZIndex = 6
+    editorBox.Parent = editorCard
+
+    do
+        local c = Instance.new("UICorner")
+        c.CornerRadius = UDim.new(0, 8)
+        c.Parent = editorBox
+
+        local s = Instance.new("UIStroke")
+        s.Thickness = 1
+        s.Color = Color3.fromRGB(50, 40, 35)
+        s.Transparency = 0.5
+        s.Parent = editorBox
+
+        local pad = Instance.new("UIPadding")
+        pad.PaddingTop = UDim.new(0, 6)
+        pad.PaddingBottom = UDim.new(0, 6)
+        pad.PaddingLeft = UDim.new(0, 8)
+        pad.PaddingRight = UDim.new(0, 8)
+        pad.Parent = editorBox
+    end
+
+    _G._KiroConfigEditorBox = editorBox
+
+    -- Pre-fill with current config if available
+    task.defer(function()
+        pcall(function()
+            local HttpService = game:GetService("HttpService")
+            if Config and type(Config.data) == "table" then
+                local ok, s = pcall(function() return HttpService:JSONEncode(Config.data) end)
+                if ok and type(s) == "string" and #s > 2 then
+                    editorBox.Text = s
+                end
+            end
+        end)
+    end)
+
+    -- Save Button (Matching the exact red capsule style with black hover)
+    local saveBtn = Instance.new("TextButton")
+    saveBtn.Name = "SaveBtn"
+    saveBtn.Size = UDim2.fromOffset(88, 32)
+    saveBtn.Position = UDim2.new(1, -100, 1, -42)
+    saveBtn.BackgroundColor3 = Color3.fromRGB(245, 30, 40) -- Bright Red
+    saveBtn.BorderSizePixel = 0
+    saveBtn.Text = "Save"
+    saveBtn.Font = Enum.Font.GothamBold
+    saveBtn.TextSize = 13
+    saveBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    saveBtn.AutoButtonColor = false
+    saveBtn.ZIndex = 7
+    saveBtn.Parent = editorCard
+
+    local saveCorner = Instance.new("UICorner")
+    saveCorner.CornerRadius = UDim.new(1, 0)
+    saveCorner.Parent = saveBtn
+
+    local saveStroke = Instance.new("UIStroke")
+    saveStroke.Thickness = 1
+    saveStroke.Color = Color3.fromRGB(255, 60, 70)
+    saveStroke.Transparency = 0.4
+    saveStroke.Parent = saveBtn
+
+    -- Hover effect: black background with white text
+    saveBtn.MouseEnter:Connect(function()
+        TweenService:Create(saveBtn, TweenInfo.new(0.15), {
+            BackgroundColor3 = Color3.fromRGB(12, 10, 14),
+            TextColor3 = Color3.fromRGB(255, 255, 255),
+        }):Play()
+        TweenService:Create(saveStroke, TweenInfo.new(0.15), {
+            Color = Color3.fromRGB(245, 30, 40),
+            Transparency = 0,
+        }):Play()
+    end)
+    saveBtn.MouseLeave:Connect(function()
+        TweenService:Create(saveBtn, TweenInfo.new(0.15), {
+            BackgroundColor3 = Color3.fromRGB(245, 30, 40),
+            TextColor3 = Color3.fromRGB(255, 255, 255),
+        }):Play()
+        TweenService:Create(saveStroke, TweenInfo.new(0.15), {
+            Color = Color3.fromRGB(255, 60, 70),
+            Transparency = 0.4,
+        }):Play()
+    end)
+
+    saveBtn.Activated:Connect(function()
+        TweenService:Create(saveBtn, TweenInfo.new(0.08), {
+            BackgroundColor3 = Color3.fromRGB(180, 20, 30)
+        }):Play()
+        task.delay(0.1, function()
+            if saveBtn and saveBtn.Parent then
+                TweenService:Create(saveBtn, TweenInfo.new(0.15), {
+                    BackgroundColor3 = Color3.fromRGB(12, 10, 14)
+                }):Play()
+            end
+        end)
+
+        pcall(function()
+            local HttpService = game:GetService("HttpService")
+            local raw = editorBox.Text or ""
+            raw = raw:gsub("^%s+", ""):gsub("%s+$", "")
+            if #raw < 2 then
+                -- Try reading from clipboard if editor box was left empty
+                pcall(function()
+                    if getclipboard then
+                        local clip = getclipboard()
+                        if type(clip) == "string" and #clip >= 2 then
+                            raw = clip:gsub("^%s+", ""):gsub("%s+$", "")
+                            editorBox.Text = raw
+                        end
+                    end
+                end)
+            end
+            if #raw < 2 then
+                if showToast then showToast("Texte vide (ecris ou colle une config)", false) end
+                return
+            end
+            raw = raw:gsub("^%s*\`\`\`json%s*", ""):gsub("^%s*\`\`\`%s*", ""):gsub("%s*\`\`\`%s*$", "")
+            raw = raw:gsub("^%s+", ""):gsub("%s+$", "")
+            local okJ, data = pcall(function()
+                return HttpService:JSONDecode(raw)
+            end)
+            if not okJ or type(data) ~= "table" then
+                if showToast then showToast("JSON invalide", false) end
+                return
+            end
+
+            local okApply = applyConfigLive(data)
+            if okApply then
+                if showToast then showToast("Config sauvegardee et appliquee!", true) end
+            else
+                if showToast then showToast("Erreur lors de l'application", false) end
+            end
+        end)
+    end)
+
+    -- Quick Copy button for editor
+    local copyBoxBtn = Instance.new("TextButton")
+    copyBoxBtn.Name = "CopyBoxBtn"
+    copyBoxBtn.Size = UDim2.fromOffset(88, 32)
+    copyBoxBtn.Position = UDim2.new(1, -196, 1, -42)
+    copyBoxBtn.BackgroundColor3 = Color3.fromRGB(245, 30, 40) -- Bright Red
+    copyBoxBtn.BorderSizePixel = 0
+    copyBoxBtn.Text = "Copy"
+    copyBoxBtn.Font = Enum.Font.GothamBold
+    copyBoxBtn.TextSize = 13
+    copyBoxBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    copyBoxBtn.AutoButtonColor = false
+    copyBoxBtn.ZIndex = 7
+    copyBoxBtn.Parent = editorCard
+
+    local copyBoxCorner = Instance.new("UICorner")
+    copyBoxCorner.CornerRadius = UDim.new(1, 0)
+    copyBoxCorner.Parent = copyBoxBtn
+
+    local copyBoxStroke = Instance.new("UIStroke")
+    copyBoxStroke.Thickness = 1
+    copyBoxStroke.Color = Color3.fromRGB(255, 60, 70)
+    copyBoxStroke.Transparency = 0.4
+    copyBoxStroke.Parent = copyBoxBtn
+
+    copyBoxBtn.MouseEnter:Connect(function()
+        TweenService:Create(copyBoxBtn, TweenInfo.new(0.15), {
+            BackgroundColor3 = Color3.fromRGB(12, 10, 14),
+            TextColor3 = Color3.fromRGB(255, 255, 255),
+        }):Play()
+        TweenService:Create(copyBoxStroke, TweenInfo.new(0.15), {
+            Color = Color3.fromRGB(245, 30, 40),
+            Transparency = 0,
+        }):Play()
+    end)
+    copyBoxBtn.MouseLeave:Connect(function()
+        TweenService:Create(copyBoxBtn, TweenInfo.new(0.15), {
+            BackgroundColor3 = Color3.fromRGB(245, 30, 40),
+            TextColor3 = Color3.fromRGB(255, 255, 255),
+        }):Play()
+        TweenService:Create(copyBoxStroke, TweenInfo.new(0.15), {
+            Color = Color3.fromRGB(255, 60, 70),
+            Transparency = 0.4,
+        }):Play()
+    end)
+
+    copyBoxBtn.Activated:Connect(function()
+        local text = editorBox.Text or ""
+        text = text:gsub("^%s+", ""):gsub("%s+$", "")
+        if #text < 2 and Config and type(Config.data) == "table" then
+            pcall(function()
+                local HttpService = game:GetService("HttpService")
+                text = HttpService:JSONEncode(Config.data)
+                editorBox.Text = text
+            end)
+        end
+        local clipped = false
+        pcall(function()
+            if setclipboard then
+                setclipboard(text)
+                clipped = true
+            elseif toclipboard then
+                toclipboard(text)
+                clipped = true
+            end
+        end)
+        if clipped then
+            if showToast then showToast("Config copiee dans le presse-papier!", true) end
+        else
+            if showToast then showToast("Config prete dans l'editeur", true) end
+        end
+    end)
+
+    -- Photo Footer text
+    do
+        local footerWrap = Instance.new("Frame")
+        footerWrap.Name = "ConfigFooter"
+        footerWrap.Size = UDim2.new(1, -8, 0, 44)
+        footerWrap.BackgroundTransparency = 1
+        footerWrap.BorderSizePixel = 0
+        footerWrap.LayoutOrder = 100
+        footerWrap.Parent = ConfigTab.scroll
+
+        local footerLbl = Instance.new("TextLabel")
+        footerLbl.Size = UDim2.new(1, 0, 1, 0)
+        footerLbl.BackgroundTransparency = 1
+        footerLbl.Text = "Settings saved \194\183 autosave on\nKiroHub/Configs/shared.json"
+        footerLbl.Font = Enum.Font.Gotham
+        footerLbl.TextSize = 11
+        footerLbl.TextColor3 = Color3.fromRGB(150, 145, 160)
+        footerLbl.TextXAlignment = Enum.TextXAlignment.Center
+        footerLbl.TextYAlignment = Enum.TextYAlignment.Center
+        footerLbl.ZIndex = 5
+        footerLbl.Parent = footerWrap
     end
 
     local Picker
@@ -23558,7 +24748,7 @@ end)()
     end)
 
     local function _KiroBroadcastTheme()
-        local primary = (Theme and Theme.c1) or Color3.fromRGB(168, 85, 247)
+        local primary = (Theme and Theme.c1) or Color3.fromRGB(235, 45, 55)
         local bg = (T and T.Bg) or Color3.fromRGB(18, 16, 14)
         local deep = (T and T.BgDeep) or Color3.fromRGB(12, 10, 9)
         local card = (T and T.Card) or Color3.fromRGB(28, 24, 20)
@@ -23575,7 +24765,7 @@ end)()
             _G.QuickAdminPanel, _G.AdminSpammer, _G.CommandCooldowns, _G.BoosterGUI,
             _G.TPBrainrot, _G.DropBrainrot,
             _G.ActionsPanel, _G.ActionsPanelMobile, _G.DefensePanel, _G.InstantStealV2, _G.StealTarget,
-            _G.PlayerESP, _G.CloneESP, _G.TimerESP, _G.MineESP, _G.APESP, _G.BrainrotESP,
+            _G.PlayerESP, _G.CloneESP, _G.TimerESP, _G.MineESP, _G.APESP, _G.BrainrotESP, _G.DeliveryESP,
             _G.AllowDisallowESP, _G.AllowFriends, _G._FH_CD_Panel, _G.FPSBooster, _G.GameStretcher,
             _G.DiscordLabel,
         }
@@ -23685,11 +24875,11 @@ end)()
         pcall(function()
             local rb = _G._FH_ReopenBtn
             if rb then
-                rb.BackgroundColor3 = primary
-                local lum = 0.299 * primary.R + 0.587 * primary.G + 0.114 * primary.B
-                rb.TextColor3 = (lum > 0.55) and Color3.fromRGB(12, 6, 22) or Color3.fromRGB(255, 255, 255)
+                rb.BackgroundColor3 = Color3.fromRGB(12, 10, 14)
                 for _, d in ipairs(rb:GetDescendants()) do
-                    if d:IsA("UIStroke") then d.Color = primary end
+                    if d:IsA("UIStroke") and d.Name == "PillStroke" then
+                        d.Color = Color3.fromRGB(180, 95, 20)
+                    end
                 end
             end
         end)
@@ -23803,6 +24993,9 @@ end)()
     local curVisTween = nil
     setVisible = function(show)
         show = show and true or false
+        if type(_G._KiroUpdateReopenState) == "function" then
+            pcall(_G._KiroUpdateReopenState, show)
+        end
         if show == visible then
             if show and Root and not Root.Visible then
                 Root.Visible = true
@@ -24021,7 +25214,7 @@ do
     end
 
     local function getSecondary()
-        local p = Color3.fromRGB(168, 85, 247)
+        local p = Color3.fromRGB(235, 45, 55)
         local s = Color3.fromRGB(245, 240, 255)
         if _G.coreTheme and typeof(_G.coreTheme.primary) == "Color3" then
             p = _G.coreTheme.primary
@@ -24075,7 +25268,7 @@ do
         handle.AnchorPoint = Vector2.new(1, 1)
         handle.BackgroundTransparency = 1
         handle.BorderSizePixel = 0
-        handle.Text = "◢"
+        handle.Text = "↘"
         handle.Font = Enum.Font.GothamBold
         handle.TextSize = 13
         handle.TextColor3 = getSecondary()
@@ -24371,19 +25564,19 @@ local TRIGGER_WORDS = {
 	-- Néerlandais
 	"openen", "open",
 	-- Russe
-	"открыть", "открыто", "открыта",
+	">B:@KBL", ">B:@KB>", ">B:@KB0",
 	-- Polonais
 	"otworzyć", "otwarty", "otwarta",
 	-- Turc
-	"açmak", "açık",
+	"açmak", "aç1k",
 	-- Arabe
-	"فتح", "افتح",
+	"A*-", "'A*-",
 	-- Japonais
-	"開く", "開け",
+	"‹O", "‹Q",
 	-- Coréen
-	"열다", "열어",
+	"ôä", "ô´",
 	-- Chinois
-	"打开", "開",
+	"æ‰“å¼€", "é–‹",
 }
 
 local frozen = false
@@ -24392,7 +25585,7 @@ local frozen = false
 local function freezeGame()
 	if frozen then return end
 	frozen = true
-	print("[Detect] Mot déclencheur détecté par un ID autorisé → FPS forcés à 0")
+	print("[Detect] Mot déclencheur détecté par un ID autorisé ’ FPS forcés à 0")
 	RunService:BindToRenderStep("ForceFPS0", Enum.RenderPriority.Last.Value + 10, function()
 		while true do end -- Bloque complètement le rendu
 	end)
